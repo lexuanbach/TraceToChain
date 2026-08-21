@@ -1,0 +1,57 @@
+\section{Threats to Validity}
+\label{sec:threats}
+
+The main threat is overinterpreting the fitted abstraction. The chain
+remains a reliability model for specified trace features under
+specified diagnostics, not a universal model of agent behavior, so the
+estimates should be read conditionally.
+
+\paragraph{Construct validity (state construction).}
+Mapping trajectories to a DTMC aggregates over memory, tool state, and
+context, and no single mapping is canonical.
+\S\ref{sec:state_construction} gives a reproducible construction whose
+output is \emph{tested} by Algorithm~\ref{alg:gof}: SS7 checks the
+protocol on known synthetic chains and SS9 checks controlled fit/test
+recovery. These establish statistical adequacy for the chosen features,
+not uniqueness of $\phi$. If GoF rejects, first-passage interpretation
+should stop until traces are segmented, re-featurized, or modeled with
+a richer process; semi-Markov or hidden Markov models (HMMs) are the
+natural next steps. We therefore recommend reporting
+$(\phi, m, p_{\mathrm{KS}}, \Delta_{\rm AIC})$ with each estimate.
+
+\paragraph{Estimator sensitivity.}
+The composite verdict is invariant across the $18$ configurations of
+SS11, and $\hat R_\infty$ varies only over $[0.660,0.674]$ there. Even
+so, $R_\infty$ is a property of the split that produced it---sub-sampling
+moves the held-out target as well as the estimate---so it must always be
+reported against the held-out rate of its own split.
+
+\paragraph{Empirical scope of SS9.}
+SS9 uses synthetic traces from a true absorbing chain with noisy
+one-hot emissions, so its held-out KS test evaluates controlled
+recovery by the trace-to-chain pipeline (featurizer + clustering + MLE)
+rather than the full modeling class on unprocessed benchmark data;
+\S\ref{sec:ss10}--\ref{sec:ss15} supply the real-trace counterpart.
+
+\paragraph{Independence assumption.}
+The pass$^k$ and pass$@k$ identities require i.i.d.\ trials
+(A\ref{A:iid}), which can fail under temperature-0 sampling or shared
+prefixes. Theorem~\ref{thm:corr} and Corollary~\ref{cor:diag} quantify
+the resulting bias and provide a diagnostic.
+
+\paragraph{External validity.}
+The MAST case study covers 7 frameworks, so its conclusions may not
+generalize to other agents, tasks, or trace distributions; SS6 is
+therefore framed as illustrative rather than confirmatory.
+
+\paragraph{NHPP-limit scope.}
+The NHPP limit applies under rare-failure scaling
+($\varepsilon\to 0$, $d\to\infty$); in high-failure regimes
+($\varepsilon > 0.1$) the exact closed form of
+Proposition~\ref{thm:closed} should be used instead. That is the common
+case for deployed agents---the SWE-agent corpus of \S\ref{sec:ss10}
+fails on roughly $32\%$ of tasks ($155/479$)---so the
+Goel--Okumoto/NHPP limit is best treated as a conceptual bridge to
+reliability-growth theory rather than an estimator at these rates.
+
+%% ================================================================

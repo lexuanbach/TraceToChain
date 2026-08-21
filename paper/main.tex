@@ -1,0 +1,224 @@
+%% main.tex — ISSRE 2026 camera-ready (RES track, 12 pages incl. references).
+\documentclass[conference]{IEEEtran}
+
+%% ----- Packages -----
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage[table]{xcolor}
+\usepackage{microtype}
+\usepackage{balance}
+\usepackage{tikz}
+\usepackage[misc]{ifsym}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\newcommand{\AlgoCommentSty}[1]{\textcolor{blue!55!black}{\scriptsize\emph{#1}}}
+\SetCommentSty{AlgoCommentSty}
+\definecolor{TableHeader}{RGB}{232,238,247}
+\definecolor{TableStripe}{RGB}{247,249,252}
+\definecolor{TableHighlight}{RGB}{232,246,238}
+\definecolor{TableRule}{RGB}{120,130,145}
+\newcommand{\theadrow}{\rowcolor{TableHeader}}
+\newcommand{\tstriped}{\rowcolor{TableStripe}}
+\newcommand{\thighlight}{\rowcolor{TableHighlight}}
+
+%% ----- Theorem environments -----
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ----- Custom commands -----
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\Rinf}{R_{\infty}}
+\newcommand{\ST}{\mathcal{S}_T}
+\newcommand{\Sset}{\mathcal{S}}
+% \newcommand{\succ}{\oplus}
+\newcommand{\fail}{\ominus}
+\newcommand{\Nmat}{N}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\Rsucc}{R_{\oplus}}
+\newcommand{\Rfail}{R_{\ominus}}
+
+\IEEEoverridecommandlockouts
+
+\begin{document}
+
+\title{\textsc{TraceToChain}: Auditing LLM-Agent Reliability with Absorbing Markov Chains}
+
+\author{\IEEEauthorblockN{Phat T. Tran-Truong \href{https://orcid.org/0000-0003-3199-6333}{\includegraphics[scale=0.004]{sugg.png}}, Xuan-Bach Le$^{\text{(\Letter)}}$ \href{https://orcid.org/0009-0003-6848-5403}{\includegraphics[scale=0.004]{sugg.png}}}
+\IEEEauthorblockA{\textit{Faculty of Computer Science and Engineering} \\
+\textit{Ho Chi Minh City University of Technology (HCMUT), VNU-HCM}\\
+Ho Chi Minh City, Vietnam \\
+\{phatttt, lexuanbach\}@hcmut.edu.vn}
+}
+
+
+\maketitle
+\bstctlcite{BSTcontrol}
+\begingroup\renewcommand\thefootnote{}
+\footnotetext{
+$^{\text{(\Letter)}}$ Corresponding Author: Xuan-Bach Le (lexuanbach@hcmut.edu.vn)
+}
+\endgroup
+
+\begin{abstract}
+Large language model (LLM) agents are sequential software systems, yet
+their reliability is reported as scalar benchmark scores---pass$@k$,
+pass$^k$, and the reliability decay curve (RDC)---that neither identify
+the success-time distribution being estimated nor test whether traces support
+it, leaving horizon, counterfactual, and metric-reconciliation
+questions unanswerable. We present
+\textsc{TraceToChain}, a reproducible pipeline that fits agent traces to
+an absorbing discrete-time Markov chain by Laplace-smoothed maximum
+likelihood, gates every result behind a composite Akaike
+information criterion and Kolmogorov--Smirnov (KS) certificate, and
+attaches Dirichlet-posterior and bootstrap intervals. We evaluate it under a strict 50/50 fit/test
+protocol on seven controlled MAST-style corpora and on $2{,}459$ real
+episodes: $479$ SWE-bench~Verified SWE-agent trajectories and $1{,}980$
+$\tau$-bench episodes over two models and two domains. On
+held-out controlled traces the fitted chain reproduces the RDC to a
+maximum $L_\infty$ error of $0.053$ and passes the first-passage KS
+test on $7/7$ frameworks (minimum $p=0.83$). On real
+traces the certified asymptotic reliability recovers the held-out pass
+rate to within $0.03$ on SWE-bench and to a mean absolute error of
+$0.0075$ across four $\tau$-bench corpora, and one fitted chain yields
+pass$@k$, pass$^k$, and closed-form perturbation answers
+($\Delta R_\infty = +0.034$ for a fallback tool) with no benchmark
+rerun. The certificate states exactly which outputs the
+evidence supports, and its verdict is invariant across $18$ clustering
+configurations of the real corpus. LLM-agent reliability engineering
+can thus move from scalar scores to an audited model that identifies
+its own trustworthy outputs.
+\end{abstract}
+
+\begin{IEEEkeywords}
+software reliability, large language models, agent systems,
+absorbing Markov chains, goodness-of-fit, model auditing, first-passage time,
+pass@k, reliability decay curve
+\end{IEEEkeywords}
+
+%% ================================================================
+
+\input{sections/01_introduction.tex}
+
+%% ================================================================
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] The standalone "Motivating Example"
+%% section is commented out because \S I already contains a compact
+%% motivating vignette and the 3-column figure (fig:motivating).
+%% The prose below is retained for artifact completeness but not
+%% compiled into the 12-page body.
+%% ----------------------------------------------------------------
+\iffalse
+\section{Motivating Example: The On-Call Engineer}
+\label{sec:motivating}
+
+Consider a fintech that deploys a customer-refund agent built on a ReAct-style loop (plan $\to$ tool\_call $\to$ observe $\to$ reflect $\to$ answer). Before launch, the team reports a single headline number from the $\tau$-bench suite: $\mathrm{pass}@1 = 0.72$. Two weeks into production, an on-call engineer faces three routine questions:
+
+\begin{enumerate}
+    \item \emph{``If we raise the per-session step budget from 8 to 16, what reliability should we expect?''} The published $\mathrm{pass}@1$ is a single scalar; it says nothing about $\Pr[\tau_\oplus \leq d]$ for varying $d$. The team re-runs $\tau$-bench at $d{=}16$ on a laptop overnight and gets $0.77$, but cannot put a confidence interval on that number or extrapolate to $d{=}24$.
+
+    \item \emph{``We added a fallback search tool; by how much does this change end-to-end reliability?''} Under the status quo this requires re-running the full benchmark. There is no perturbation estimator that translates a local change in one row of the transition matrix into an $R_\infty$ delta, because there is no transition matrix --- only an aggregate pass rate.
+
+    \item \emph{``Our internal evaluation reports $\mathrm{pass}^k = 0.51$ at $k{=}5$, but the SRE dashboard expects an MTBF-style metric. Which is right?''} The engineer has two metrics computed by two teams with different denominators and cannot reconcile them without introducing yet a third.
+\end{enumerate}
+
+What unifies all three failures is that the community currently reports \emph{summary statistics of a first-passage distribution it never writes down.} $\mathrm{pass}@k$, $\mathrm{pass}^k$, and the RDC are three restrictions of one object --- $F_{\tau_\oplus}$ under the absorbing chain $\hat M = (\hat Q, \hat R_\oplus, \hat R_\ominus)$ --- but each benchmark reports only one restriction and each does so without an uncertainty interval, without a goodness-of-fit diagnostic, and without any lever the engineer can pull to ask ``what if.''
+
+Our framework eliminates all three pain points by making $\hat M$ an \emph{explicit, audited artifact}:
+
+\begin{itemize}
+    \item \textbf{Unified first-passage view} (Theorem~\ref{thm:unify}). $\mathrm{pass}@k$, $\mathrm{pass}^k$, and $\mathcal{R}(d)$ are all read off from $F_{\tau_\oplus}$. The ``is $\mathrm{pass}@1$ or $\mathrm{pass}^k$ right?'' question becomes vacuous --- they answer different marginals of the same distribution.
+    \item \textbf{Perturbation bound} (Proposition~\ref{thm:perturb}). A row-rank change $\Delta Q$ propagates to $\Delta R_\infty$ in closed form via $N = (I - \hat Q)^{-1}$; the fallback-tool question is answered in milliseconds without rerunning the benchmark.
+    \item \textbf{Uncertainty quantification} (\S\ref{sec:uq}). Every entry of $\hat M$ carries a 95\% Dirichlet-posterior interval, which propagates to every downstream quantity, so the laptop-overnight $0.77$ comes with a calibrated CI.
+    \item \textbf{Held-out goodness-of-fit} (SS9). If the agent's traces \emph{are not} adequately Markov on this corpus, the composite AIC $\wedge$ KS certificate rejects $\hat M$ --- and the engineer is told, with a quantitative $L_\infty^{\mathrm{RDC}}$ error and a held-out $p$-value, exactly how much to trust the answers above.
+\end{itemize}
+
+In short: the engineer does not currently have a vocabulary in which these three questions are answerable; after fitting one chain, they do. Figure~\ref{fig:motivating_example} illustrates this dilemma.
+
+\begin{figure}[!t]
+  \centering
+  \begin{tikzpicture}[
+      >=Stealth,
+      scale=0.85, every node/.style={transform shape},
+      box/.style={rectangle, draw=blue!70, fill=blue!5, rounded corners, align=center, font=\small\sffamily, minimum width=1.4cm, minimum height=0.6cm},
+      metric/.style={rectangle, draw=red!70, fill=red!5, align=center, font=\bfseries\small, minimum width=2.5cm, minimum height=0.8cm},
+      question/.style={rectangle, draw=gray!60, fill=gray!5, align=left, font=\scriptsize\sffamily, text width=2.6cm, rounded corners=2pt}
+  ]
+      % ReAct Loop
+      \node[box] (plan) at (0, 0) {Plan};
+      \node[box] (tool) at (2.2, 0) {Tool Call};
+      \node[box] (obs)  at (4.4, 0) {Observe};
+      \node[box] (ans)  at (6.6, 0) {Answer};
+      
+      \draw[->, thick] (plan) -- (tool);
+      \draw[->, thick] (tool) -- (obs);
+      \draw[->, thick] (obs) to[bend right=30] node[above, font=\scriptsize] {Reflect} (plan);
+      \draw[->, thick] (obs) -- (ans);
+      
+      % Metric Dashboard
+      \node[metric] (pass) at (3.3, -1.5) {Dashboard\\ $\mathrm{pass}@1 = 0.72$};
+      
+      % Questions
+      \node[question] (q1) at (0, -3.5) {Q1: Raise step budget $d=8 \to 16$?};
+      \node[question] (q2) at (3.3, -3.5) {Q2: Add fallback search tool?};
+      \node[question] (q3) at (6.6, -3.5) {Q3: $\mathrm{pass}^k$ vs MTBF vs RDC?};
+      
+      \draw[->, dashed, color=red!70, thick] (q1) -- (pass) node[midway, left, font=\scriptsize, color=red!70] {?};
+      \draw[->, dashed, color=red!70, thick] (q2) -- (pass) node[midway, right, font=\scriptsize, color=red!70] {?};
+      \draw[->, dashed, color=red!70, thick] (q3) -- (pass) node[midway, right, font=\scriptsize, color=red!70] {?};
+
+  \end{tikzpicture}
+  \caption{Motivating example: an on-call engineer observes a single aggregate scalar metric ($\mathrm{pass}@1 = 0.72$), which cannot answer counterfactual questions about step budgets, tool perturbations, or metric reconciliation.}
+  \label{fig:motivating_example}
+\end{figure}
+\fi
+%% ----------------------------------------------------------------
+%% [END REDUCTION 2026-04-24 — standalone motivating example]
+%% ----------------------------------------------------------------
+
+%% ================================================================
+\input{sections/02_related_work.tex}
+\input{sections/03_preliminaries.tex}
+\input{sections/05_state_construction.tex}
+\input{sections/06_analytic_tools.tex}
+\input{sections/07_extensions.tex}
+\input{sections/08_simulation_validation.tex}
+\input{sections/09_empirical_case_studies.tex}
+\input{sections/13_ss10_swebench_real.tex}
+\input{sections/16_ss15_taubench.tex}
+\input{sections/14_robustness.tex}
+\input{sections/10_threats_to_validity.tex}
+\input{sections/11_discussion.tex}
+\input{sections/12_conclusion.tex}
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] The Extended Proofs appendix is suppressed
+%% from the 12-page body. All T1--T6 proofs and extended remarks are
+%% retained in the reproducibility artifact under
+%% \texttt{proofs/T1.tex}--\texttt{proofs/T6.tex}.
+%% ----------------------------------------------------------------
+\iffalse
+\appendix
+\section{Extended Proofs}
+\label{app:proofs}
+
+Full proofs of Propositions~\ref{thm:shape}--\ref{thm:mixing} are
+provided in the companion artifact at
+\texttt{proofs/T4.tex}--\texttt{proofs/T6.tex}. The main text
+includes proof sketches only due to the 12-page limit.
+\fi
+
+\end{document}

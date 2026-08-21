@@ -1,0 +1,35 @@
+\section{Discussion}
+\label{sec:disc}
+
+For benchmark authors, SRE teams, and method developers, the fitted
+chain provides a shared reliability object at the trace level: it
+supports first-passage metrics with uncertainty, horizon and
+perturbation queries, and diagnostics that can reject an inadequate
+abstraction. SS9 (Table~\ref{tab:heldout-ss9}) shows that, once the
+trace-to-chain step is specified and checked, $\hat M$ tracks held-out
+first-passage behavior to within $L_\infty^{\mathrm{RDC}}\le 0.053$
+across seven frameworks. This does not replace benchmarks or incident
+analysis; it shows how benchmark-style trace corpora can support
+auditable reliability answers while also flagging when the abstraction
+is too weak for them. The practical requirement is to fit the chain,
+report uncertainty, run GoF, and withhold first-passage conclusions
+when the checks fail.
+
+The real-data studies make this concrete and show the audit is
+\emph{selective} rather than all-or-nothing: across SWE-bench (SS10,
+SS14) and $\tau$-bench (SS15) it accepts the asymptotic reliability but
+rejects the first-order RDC timing, while SS11--SS13
+(\S\ref{sec:robustness}) show the verdict survives the clustering
+choice even where the point estimate does not. The value of the fitted
+chain on real traces is thus real but \emph{partial}, and the audit is
+what makes it safe by saying which part to trust.
+
+The clearest next step, identified by the data rather than assumed, is a
+duration-aware model: SS14 localizes the misfit to the success-time
+distribution, so semi-Markov holding times (or a learned phase-type
+duration law) are the indicated route to restoring horizon queries.
+Further directions include HMM reliability under partial observability,
+online estimation of $Q$, integration with PRISM and Storm, and
+mixture-chain models for cross-trial correlation~\cite{spaeh2024}.
+
+%% ================================================================

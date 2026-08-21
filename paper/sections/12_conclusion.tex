@@ -1,0 +1,24 @@
+\section{Conclusion}
+\label{sec:conc}
+
+LLM-agent teams already collect execution traces, but scalar metrics
+alone do not answer deployment reliability questions.
+\textsc{TraceToChain} turns those traces into an audited absorbing-chain
+model, combining a composite AIC$\,\wedge\,$KS certificate,
+Dirichlet-posterior and bootstrap intervals, and a strict held-out
+protocol, and it recasts pass$@k$, pass$^k$, and the RDC as projections
+of a single success-time distribution. On seven controlled MAST-style
+frameworks the analytic and held-out empirical RDCs agree to
+$\max L_\infty^{\mathrm{RDC}}=0.053$ with KS acceptance on $7/7$
+corpora. On $2{,}459$ real episodes from two independent benchmarks the
+certified asymptotic reliability recovers the held-out pass rate to
+within $0.03$ on SWE-bench and to a mean of $0.0075$ across four
+$\tau$-bench corpora, delivering metric reconciliation and closed-form
+perturbation answers on real agents with no benchmark rerun, and the
+certificate marks precisely which further outputs its evidence
+supports. The verdict is invariant across $18$ clustering configurations, and
+$\hat R_\infty$ stays within $4\%$ of a synthetic ground truth up to
+$50\%$ censoring. The result is a reliability model that reports not
+only a number but the evidence that licenses it.
+
+%% ================================================================

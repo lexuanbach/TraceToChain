@@ -1,0 +1,143 @@
+\section{Related Work}
+\label{sec:related}
+
+Prior work provides the ingredients for deployment reliability
+decisions but not their combination: reliability engineering
+contributes the vocabulary, agent benchmarks the trace setting, and
+probabilistic verification the model-based reasoning. The missing piece
+is an audited fit from LLM-agent traces---a model with uncertainty,
+diagnostics, and shared semantics for common metrics.
+
+%% [REDUCTION] The full-width method-comparison table is suppressed for the
+%% 12-page body; the three paragraphs below plus the positioning summary
+%% state the same taxonomy. Retained in source for the artifact.
+\iffalse
+\begin{table*}[!t]
+\centering
+\caption{Comparison of \textsc{TraceToChain} with related evaluation
+and verification frameworks.}
+\label{tab:method-comparison}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth}
+                >{\raggedright\arraybackslash}p{0.15\textwidth}
+                >{\raggedright\arraybackslash}p{0.2\textwidth}
+                >{\raggedright\arraybackslash}p{0.22\textwidth}
+                >{\raggedright\arraybackslash}p{0.1\textwidth}@{}}
+\toprule
+\textbf{Approach} & \textbf{Input} & \textbf{Reliability semantics} &
+\textbf{Diagnostics / uncertainty} & \textbf{LLM-agent fit} \\
+\midrule
+\mbox{Classical SRE / NHPP~\cite{cheung1980,goelokt}} &
+Aggregate failures &
+Growth / failure intensity &
+Aggregate intervals, no trace states &
+Indirect \\
+\tstriped
+\mbox{Agent benchmark metrics~\cite{chen2021codex,rdc2025}} &
+Outcomes / traces &
+Success, pass$@k$, pass$^k$, RDC &
+Metric-specific, limited fit checks &
+Direct / split \\
+\mbox{PRISM / Storm~\cite{prism2011,storm2017}} &
+User model &
+PCTL queries &
+Verification, no trace fitting &
+Indirect \\
+\tstriped
+\mbox{TriCEGAR / ProbGuard~\cite{tricegar2026,pro2guard2025}} &
+Empirical traces &
+Learned Markov abstraction &
+Refinement diagnostics &
+Related \\
+\thighlight
+\mbox{\textbf{\textsc{TraceToChain} (this work)}} &
+\textbf{LLM-agent traces} &
+\textbf{First-passage DTMC reliability} &
+\textbf{AIC/KS diagnostics, posterior/bootstrap intervals} &
+\textbf{Direct} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+\fi
+
+
+\paragraph{Classical SRE.}
+Classical software reliability gives this paper its vocabulary and
+analytic tools. The dependability taxonomy of Avi{\v z}ienis et al.\
+separates reliability, availability, safety, and failure
+semantics~\cite{avizienis2004dependability}, while SRE
+practice~\cite{beyer2016sre} turns such concepts into measurable
+service objectives. State-based modeling is equally central:
+Cheung~\cite{cheung1980} used Markov chains for program-level software
+reliability, Trivedi and Bobbio~\cite{trivedi2017reliability} give a
+broader engineering treatment, and Kemeny and Snell~\cite{kemenysnell}
+developed the absorbing-chain framework and fundamental matrix
+$N=(I-Q)^{-1}$ used by our closed forms. Reliability-growth models add
+a complementary aggregate view~\cite{goelokt,musa1987}. None of these
+is by itself a trace-level evaluation method for LLM agents;
+Proposition~\ref{thm:nhpp} connects them by recovering the NHPP form as
+a rare-failure scaling limit of the fitted agent chain.
+
+\paragraph{Agent benchmarks.}
+Agent benchmarks show why trace-level reliability semantics are
+needed. ReAct~\cite{yao2023react}, Toolformer~\cite{schick2023toolformer},
+and Reflexion~\cite{shinn2023reflexion} established agent
+trajectories that interleave reasoning, tool use, and revision steps;
+ToolBench~\cite{qin2023toolllm} and $\tau$-bench~\cite{taub2024} make
+API choice, tool errors, and tool-agent-user interaction part of the
+evaluation surface. SWE-bench~\cite{swebench2024},
+WebArena~\cite{zhou2023webarena}, ALFWorld~\cite{shridhar2021alfworld},
+and Voyager~\cite{wang2023voyager} move evaluation further toward
+software, web, embodied, and open-ended environments where success is
+long-horizon and context-dependent. MAST~\cite{mast2025} diagnoses
+multi-agent failure modes, and AgentBench~\cite{agentbench2024}
+broadens the interactive evaluation space beyond one task family.
+Together, these benchmarks expose the trace setting; they do not by
+themselves unify the reported metrics. pass$@k$~\cite{chen2021codex}
+originated as a repeated-sampling success metric for code generation,
+and agent evaluation later adapted it alongside the reliability decay
+curve (RDC)~\cite{rdc2025}, which tracks how repeated-trial reliability
+\emph{degrades as task duration grows}. Our $d$-step reliability $R(d)$
+(Definition~\ref{def:reliab}) is the complementary step-budget view: a
+non-decreasing cumulative success probability indexed by the step
+budget rather than a duration-indexed decay. We retain the RDC name for
+continuity and state the modelled quantity explicitly in
+\S\ref{sec:unify}.
+
+\paragraph{Formal methods for agents.}
+Formal methods supply the model-based reasoning layer. Probabilistic
+computation tree logic (PCTL)~\cite{hansson1994pctl} supports
+reasoning about probabilistic time and reliability properties, and
+model-checking texts~\cite{baier2008principles} place such logics in a
+broader verification framework. Given a probabilistic model,
+PRISM~\cite{prism2011} and Storm~\cite{storm2017} can verify PCTL
+properties. More recent trace-driven frameworks, including
+TriCEGAR~\cite{tricegar2026} and ProbGuard~\cite{pro2guard2025}, learn
+DTMC or Markov decision process (MDP) abstractions from empirical
+traces. We therefore do not claim trace-to-DTMC abstraction as the
+main theoretical novelty. Our focus is its reliability-engineering use
+for LLM agents: \textsc{TraceToChain} fits an absorbing DTMC with a
+composite AIC$\,\wedge\,$KS goodness-of-fit certificate and uncertainty
+quantification, and SS9 (\S\ref{sec:ss9}) evaluates held-out recovery on
+controlled MAST-style corpora using KS distance and
+$L_\infty^{\mathrm{RDC}}$ error. The first-passage view explains why
+pass$@k$, pass$^k$, and the RDC are restrictions of a single
+distribution (Theorem~\ref{thm:unify}), while the Goel--Okumoto
+NHPP appears as a rare-failure scaling limit of the fitted chain
+(Proposition~\ref{thm:nhpp}).
+
+\noindent\textbf{Positioning summary.}
+These traditions are complementary rather than competing: classical
+reliability models provide semantics, agent benchmarks provide traces,
+and probabilistic-verification tools provide model-based queries, but
+none of them fits and audits a reliability model from LLM-agent traces.
+\textsc{TraceToChain}'s distinction is the
+audited combination---traces define the estimate, diagnostics test the
+abstraction, uncertainty bounds the reported quantities, and
+first-passage semantics connect horizon reliability, perturbations, and
+common LLM-agent metrics---which yields a reliability argument from
+trace data rather than another scalar score.
+
+%% ================================================================

@@ -1,0 +1,265 @@
+\section{State Construction from Traces}
+\label{sec:state_construction}
+
+The formalism is useful only if traces can produce the fitted chain
+reproducibly and with checks that expose when the abstraction fails. A
+fitted Markov model is an estimate plus evidence: the trace
+representation, order test, first-passage fit, and uncertainty analysis
+must all support its use. Figure~\ref{fig:design} summarizes the
+workflow; Algorithm~\ref{alg:trace} implements the construction pipeline
+and Algorithm~\ref{alg:gof} the goodness-of-fit (GoF) protocol that SS7
+(\S\ref{sec:ss7}) checks on controlled corpora.
+
+%% [REDUCTION] The standalone pipeline figure is superseded by the study-design
+%% figure (Fig.~\ref{fig:design}) in \S\ref{sec:intro}. Retained for the artifact.
+\iffalse
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    >=Stealth, font=\scriptsize\sffamily, node distance=2pt,
+    stage/.style={rectangle, rounded corners, draw=blue!65!black, fill=blue!6,
+      line width=0.7pt, align=center, text width=1.55cm, minimum height=0.95cm, inner sep=2pt},
+    gate/.style={diamond, aspect=1.7, draw=red!60!black, fill=red!7, line width=0.7pt,
+      align=center, font=\scriptsize\sffamily, inner sep=1pt},
+    result/.style={rectangle, rounded corners, draw=green!55!black, fill=green!7,
+      line width=0.7pt, align=center, text width=1.7cm, minimum height=0.95cm, inner sep=2pt},
+    ar/.style={->, draw=gray!75, line width=0.7pt}]
+  \node[stage] (tr) {agent\\traces $\mathcal T$};
+  \node[stage, right=10pt of tr] (fe) {featurize\\$\phi$ + cluster ($m$ states)};
+  \node[stage, right=10pt of fe] (mle) {Laplace MLE\\$\hat Q,\hat R_\oplus,\hat R_\ominus$};
+  \node[gate, below=12pt of mle] (gof) {AIC\\$\wedge$\,KS?};
+  \node[result, left=14pt of gof] (use) {$\mathcal R(d)$, $R_\infty$,\\perturbation,\\pass$@k$/pass$^k$\\+ CIs (UQ)};
+  \node[stage, right=12pt of gof, text width=1.6cm, draw=orange!70!black, fill=orange!8] (rej) {reject:\\re-featurize /\\richer model};
+  \draw[ar] (tr) -- (fe);
+  \draw[ar] (fe) -- (mle);
+  \draw[ar] (mle) -- (gof);
+  \draw[ar] (gof) -- node[above, font=\scriptsize] {pass} (use);
+  \draw[ar] (gof) -- node[above, font=\scriptsize] {fail} (rej);
+\end{tikzpicture}
+\caption{\textsc{TraceToChain} workflow: traces are featurized and clustered
+into $m$ transient states; Laplace-smoothed MLE fits the absorbing chain; the
+composite AIC$\,\wedge\,$KS certificate gates whether the first-passage
+quantities (with uncertainty) may be reported, or the corpus is referred back
+for re-featurization or a richer model.}
+\label{fig:pipeline}
+\end{figure}
+\fi
+
+
+\subsection{Featurization and Discretization}
+\label{sec:featurization}
+
+The first step is to turn heterogeneous trace events into countable
+states: reasoning steps, tool calls, and observations are featurized
+and then clustered into labels such as ``plan'' or ``tool result.'' Let
+$\mathcal{T} = \{\tau^{(i)}\}_{i=1}^{n}$ be the trace corpus. A run is
+$\tau^{(i)} = (\sigma_1^{(i)}, \sigma_2^{(i)}, \ldots,
+\sigma_{L_i}^{(i)}, y^{(i)})$, where each $\sigma_t^{(i)}$ is one
+observed step and $y^{(i)} \in \{\oplus, \ominus\}$ is the terminal
+outcome. A featurizer $\phi : \sigma \mapsto \mathbb{R}^p$ maps each
+step to a vector representation, either:
+\begin{itemize}
+  \item \emph{rule-based} (tool type, retry flag, error code, used in
+        our simulation study SS7 and MAST experiments), or
+  \item \emph{learned} (a pretrained sentence encoder applied to the
+        agent's chain-of-thought and interchangeable in
+        Algorithm~\ref{alg:trace}).
+\end{itemize}
+We cluster the feature vectors $\{\phi(\sigma_t^{(i)})\}$ using
+agglomerative Ward linkage~\cite{ward1963}. The number of clusters
+$m \in [k_{\min}, k_{\max}]$ is selected by silhouette
+score~\cite{rousseeuw1987}; we use $[3,6]$ on the controlled corpora of
+SS9 and $[2,10]$ on the real corpora, with SS11 varying $k_{\max}$
+explicitly. Each step is assigned to the selected
+cluster, yielding
+$s_1^{(i)}, \ldots, s_{L_i}^{(i)} \in \{1, \ldots, m\}$ followed by
+the terminal outcome.
+
+\subsection{Transition Estimation and Order Selection}
+\label{sec:order_selection}
+
+Estimating the fitted chain is then a counting problem with a direct
+operational reading: a row of $\hat Q$ says where the agent goes next
+if it has not terminated, and the matching entries of $\hat R_\oplus$
+and $\hat R_\ominus$ say how often that state exits to success or fatal
+failure. We fit these quantities by
+Laplace-smoothed maximum-likelihood estimation (MLE) with
+$\alpha=1$, so
+$\hat{Q}_{ij} = (c_{ij} + \alpha) / (c_i + \alpha(m+2))$
+where $c_{ij}$ is the count of transitions from state $i$ to state
+$j$, $c_{i,\oplus}$ and $c_{i,\ominus}$ count terminal exits from
+state $i$, and
+$c_i = \sum_j c_{ij} + c_{i,\oplus}+c_{i,\ominus}$. The same
+denominator normalizes the success and failure exits. Smoothing
+prevents sparse rows from assigning zero probability to unobserved but
+plausible exits.
+
+We also test whether first-order memory is sufficient. The comparison
+uses a first-vs-second-order Markov Akaike information criterion (AIC)
+test~\cite{akaike1974}:
+$\Delta_{\rm AIC} = \mathrm{AIC}_1 - \mathrm{AIC}_2
+                  = -2(\ell_1 - \ell_2) + 2(k_1 - k_2),$
+where $\ell_o$ and $k_o$ are the log-likelihood and free-parameter
+count under order $o$. The first-order model is preferred iff
+$\Delta_{\rm AIC} < 0$. Simulation study SS7 (\S\ref{sec:ss7}) shows
+that this test has high power against second-order ground truth.
+
+\paragraph{Time-homogeneity as a testable assumption.}
+When we pool transition counts, we assume a \emph{time-homogeneous}
+kernel $\Pr[s_{t+1}=j \mid s_t=i]$ that does not vary with $t$. The
+composite AIC$\,\wedge\,$KS protocol (Algorithm~\ref{alg:gof}) tests
+whether that simplification is defensible. AIC checks whether recent
+history still matters after conditioning on the current state, while
+the Kolmogorov--Smirnov (KS) first-passage test can reveal drift in
+exit hazards. If either test fails, the corpus should be segmented
+before counts are pooled.
+
+\paragraph{Variable horizons, early termination, and censoring.}
+Runs can have different lengths and may end in success ($\oplus$),
+failure ($\ominus$), or right-censoring. Algorithm~\ref{alg:trace}
+counts each observed transient transition once. Completed runs add one
+absorber count, while censored runs contribute only the transitions
+observed before censoring. This keeps $\hat Q$ tied to observed
+movement among transient states, but it can make the exit estimates
+$\hat R_\oplus$ and $\hat R_\ominus$ conservative when censoring is
+substantial. In \S\ref{sec:mast} we observe censoring below $10\%$, and
+SS12 (\S\ref{sec:robustness}) probes far heavier regimes.
+
+\begin{algorithm}[t]
+\small
+\DontPrintSemicolon
+\KwIn{Traces $\mathcal{T}$, featurizer $\phi$, cluster range
+      $[k_{\min}, k_{\max}]$, Laplace $\alpha$.}
+\KwOut{$\hat{Q}, \hat{R}_\oplus, \hat{R}_\ominus$, labels $\pi$,
+       AIC order verdict.}
+$X \leftarrow [\phi(\sigma_t^{(i)})]_{i,t}$\tcp*{featurize}
+\For{$k = k_{\min}$ \KwTo $k_{\max}$}{
+  $L_k \leftarrow$ AgglomerativeWard$(X, k)$;\quad
+  $\mathrm{sil}_k \leftarrow $ silhouette$(X, L_k)$\;
+}
+$m^\star \leftarrow \arg\max_k \mathrm{sil}_k$;\quad
+$\pi \leftarrow L_{m^\star}$\;
+$c_{s_t,s_{t+1}}\mathrel{+}=1$ for each transient transition;
+$c_{s_{L_i},y^{(i)}}\mathrel{+}=1$ for each terminal exit\;
+$\hat{Q}_{ij} \leftarrow (c_{ij} + \alpha) / (c_i + \alpha(m^\star + 2))$;
+same normalization for $\hat{R}_{\oplus,i},\hat{R}_{\ominus,i}$\;
+Compute $\ell_1, \ell_2, k_1, k_2$;\quad
+$\Delta_{\rm AIC} \leftarrow -2(\ell_1 - \ell_2) + 2(k_1 - k_2)$\;
+\KwRet{$(\hat{Q}, \hat{R}_\oplus, \hat{R}_\ominus, \pi)$;
+       first-order iff $\Delta_{\rm AIC} < 0$}\;
+\caption{\textsc{TraceToChain}: construct and audit an absorbing DTMC
+         from agent execution traces.}
+\label{alg:trace}
+\end{algorithm}
+
+\subsection{Goodness-of-Fit Protocol}
+\label{sec:gof}
+
+Fitting helps only if the abstraction matches the traces. A rejection
+is an engineering result, not a nuisance: it says the current state
+labels should not be used for reliability queries without segmentation,
+new features, or a richer model. We use two checks on $\hat M$ that
+address different failure modes:
+
+\emph{Layer 1 (KS on first-passage).} We compare the model
+success first-passage-time (FPT) distribution
+$F_{\tau_\oplus \mid \tau_\oplus < \tau_\ominus}^{\hat M}$, conditional
+on eventual success, with the empirical distribution of success FPTs
+among successful traces, and retain the null iff $p_{\rm KS} > 0.05$.
+The reference distribution is drawn from $\hat M$ as $N$ seeded
+absorption times ($N=8{,}000$ in SS9, $20{,}000$ on the real corpora),
+so this is a genuine \emph{two-sample} KS test~\cite{smirnov1939}, not a
+one-sample test against a closed-form CDF: stochastic, but
+seed-reproducible.
+
+\emph{Layer 2 (AIC).} The AIC layer asks whether the first-order
+chain is adequate compared with a second-order alternative. We reject
+the first-order model if $\Delta_{\rm AIC} > 0$.
+
+\emph{Composite rule.} The chain is accepted iff
+\emph{both} $p_{\rm KS} > 0.05$ \emph{and} $\Delta_{\rm AIC} < 0$.
+This rule catches second-order dependence that the FPT-marginal KS test
+can miss (see \S\ref{sec:ss7}). If either layer fails, later
+reliability quantities should be treated as unsupported by the current
+trace abstraction. Given $\phi$, the cluster range, $\alpha$, and a
+lowest-$k$ silhouette tie-breaking rule, Algorithm~\ref{alg:trace} is
+deterministic in the trace corpus, and Algorithm~\ref{alg:gof} is
+deterministic given its reference-sample seed; all seeds are fixed in
+the artifact.
+
+\begin{algorithm}[t]
+\small
+\DontPrintSemicolon
+\KwIn{Traces $\mathcal{T}$, fitted chain $\hat{M}$, threshold
+      $\alpha_{\rm KS}=0.05$.}
+\KwOut{\textsc{Accept} / \textsc{Reject}, $(p_{\rm KS},\Delta_{\rm AIC})$.}
+Draw $N$ seeded absorption times from $\hat M$ $\to$ reference
+$\tilde F_{\tau_\oplus \mid \tau_\oplus < \tau_\ominus}^{\hat M}$\;
+Collect empirical FPTs from $\mathcal{T}_\oplus$ (success traces)\;
+$p_{\rm KS} \leftarrow$ two-sample KS($\hat F$, $\tilde F^{\hat M}$)\;
+$\Delta_{\rm AIC} \leftarrow$ (Algorithm~\ref{alg:trace}, line~8)\;
+\eIf{$p_{\rm KS} > \alpha_{\rm KS}$ \textbf{and} $\Delta_{\rm AIC} < 0$}{
+  \KwRet{\textsc{Accept}, $(p_{\rm KS}, \Delta_{\rm AIC})$}\;
+}{
+  \KwRet{\textsc{Reject}, $(p_{\rm KS}, \Delta_{\rm AIC})$}\;
+}
+\caption{Composite KS/AIC goodness-of-fit test for the agent-DTMC
+         assumption.}
+\label{alg:gof}
+\end{algorithm}
+
+\subsection{Uncertainty Quantification on \texorpdfstring{$\hat Q$, $\hat R_\oplus$, $\hat R_\ominus$}{Q, R+, R-}}
+\label{sec:uq}
+
+Algorithm~\ref{alg:trace} returns point estimates, but a small corpus
+may estimate a row of $\hat Q$ or an exit probability poorly, and that
+uncertainty should be visible before an operator interprets $R(d)$,
+$R_\infty$, or a perturbation result. We therefore attach intervals to
+$\hat Q$, $\hat R_\oplus$, and $\hat R_\ominus$ and propagate them to
+the quantities of \S\ref{sec:core}--\S\ref{sec:ext}.
+
+\paragraph{(i) Closed-form Dirichlet posterior.}
+The Laplace-smoothed MLE is the posterior mean under a symmetric
+Dirichlet$(\alpha)$ prior over $\{s_1,\ldots,s_m,\oplus,\ominus\}$. The
+row-$i$ posterior is $\mathrm{Dir}(c_{i,\cdot} + \alpha \mathbf{1})$
+and the marginal for any single entry $X_{i,j}$ (including absorber
+columns) is $\mathrm{Beta}(c_{i,j}+\alpha,\; c_i + \alpha(m+2) -
+c_{i,j} - \alpha)$, where $c_i = \sum_{j'} c_{i,j'}$ includes both
+transient and absorber outcomes. Equal-tailed $(1-\alpha_{\rm CI})$
+credible intervals (CIs) are the corresponding Beta quantiles; we use
+$\alpha_{\rm CI}=0.05$ throughout.
+
+\paragraph{(ii) Non-parametric trace-level bootstrap.}
+To quantify trace-sampling variability we resample traces with
+replacement $B=200$ times, assign each step to its nearest target
+centroid to keep labels aligned, and recompute the MLE. The implemented full
+re-clustering path (\texttt{fast=False}) gives comparable but wider
+intervals.
+
+\paragraph{Empirical ranges.}
+Table~\ref{tab:mast-states} reports representative MAST-derived state
+taxonomies from SS8; each cluster is named by its dominant rule-based
+feature (\S\ref{sec:featurization}) with that feature's within-cluster
+share in parentheses, and the posterior intervals show which
+success exits are well estimated or sparse, exposing state-level
+variation hidden by aggregate pass/fail rates. Across the seven frameworks the two
+uncertainty routes agree closely on entries of $\hat Q$: median
+posterior CI widths span $0.108$--$0.116$ and median bootstrap widths
+$0.084$--$0.103$, while maxima reaching $0.34$ mark the sparse rows. All downstream $\mathcal{R}(d)$, mean time to
+absorption ($\mathrm{MTTA}=e_{s_0}^{\top}N\mathbf{1}$), and pass$^k$
+quantities inherit these CIs
+by propagation (Lipschitz-continuous in $(\hat Q,\hat R_\oplus)$ by
+Proposition~\ref{thm:perturb}).
+
+\input{../data/mast_derived/SS8_state_taxonomy.tex}
+%% [REDUCTION] tab:uq-summary is a 7x7 grid whose every range is quoted
+%% inline below; retained in the artifact.
+%% \input{../data/mast_derived/SS8_uq_ranges.tex}
+
+The output is the audited model used for reliability analysis: a
+fitted chain plus uncertainty and fit diagnostics. If either layer
+rejects, the corpus should be segmented, re-featurized, or treated as
+outside the absorbing-DTMC approximation; when both pass, the fitted
+chain can be used for reliability queries with the reported intervals.
+
+%% ================================================================

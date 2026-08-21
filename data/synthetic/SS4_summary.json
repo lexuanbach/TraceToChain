@@ -1,0 +1,81 @@
+{
+  "mu_sequence": [
+    0.2,
+    0.1,
+    0.05,
+    0.02,
+    0.01,
+    0.005
+  ],
+  "eps_over_mu": 0.1,
+  "lambda_target": 2.0,
+  "note": "R(d) is the cumulative first-passage CDF to success (increasing). S(d) = (1-mu-eps)^d is the survival function (decreasing); it is plotted separately for transparency but is NOT compared to the Goel-Okumoto limit.",
+  "summary": [
+    {
+      "mu": 0.2,
+      "eps": 0.020000000000000004,
+      "eps_over_mu": 0.1,
+      "d_n": 10,
+      "R_inf": 0.8333111288069436,
+      "ks_R_vs_GO": 0.03135358795644372,
+      "ks_scaled": 0.10398808708292974,
+      "p_approx": 1.9572102863201921,
+      "pass": true
+    },
+    {
+      "mu": 0.1,
+      "eps": 0.010000000000000002,
+      "eps_over_mu": 0.1,
+      "d_n": 20,
+      "R_inf": 0.8207000311099226,
+      "ks_R_vs_GO": 0.043964685653464675,
+      "ks_scaled": 0.2014714999119409,
+      "p_approx": 1.8440526006141935,
+      "pass": true
+    },
+    {
+      "mu": 0.05,
+      "eps": 0.005000000000000001,
+      "eps_over_mu": 0.1,
+      "d_n": 40,
+      "R_inf": 0.8144934099427863,
+      "ks_R_vs_GO": 0.050171306820601,
+      "ks_scaled": 0.3212531107266703,
+      "p_approx": 1.6270036282464553,
+      "pass": true
+    },
+    {
+      "mu": 0.02,
+      "eps": 0.002,
+      "eps_over_mu": 0.1,
+      "d_n": 100,
+      "R_inf": 0.8108046527021782,
+      "ks_R_vs_GO": 0.053860064061209134,
+      "ks_scaled": 0.5412869447607551,
+      "p_approx": 1.1131168657143828,
+      "pass": true
+    },
+    {
+      "mu": 0.01,
+      "eps": 0.001,
+      "eps_over_mu": 0.1,
+      "d_n": 200,
+      "R_inf": 0.8095811592919957,
+      "ks_R_vs_GO": 0.0550835574713916,
+      "ks_scaled": 0.7809442099436581,
+      "p_approx": 0.59060931510124,
+      "pass": true
+    },
+    {
+      "mu": 0.005,
+      "eps": 0.0005,
+      "eps_over_mu": 0.1,
+      "d_n": 400,
+      "R_inf": 0.8089705729504411,
+      "ks_R_vs_GO": 0.05569414381294624,
+      "ks_scaled": 1.115274360719331,
+      "p_approx": 0.1662061125769308,
+      "pass": true
+    }
+  ]
+}

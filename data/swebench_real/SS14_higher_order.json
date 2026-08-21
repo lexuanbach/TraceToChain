@@ -1,0 +1,117 @@
+{
+  "n_traces": 479,
+  "n_fit": 239,
+  "n_test": 240,
+  "held_out_pass_rate": 0.6833,
+  "orders": [
+    {
+      "k": 1,
+      "n_states": 10,
+      "R_inf": 0.6565,
+      "KS_D": 0.3407,
+      "KS_p": 0.0,
+      "L_inf": 0.2233,
+      "passed": false,
+      "model_succ_pctiles": [
+        10.0,
+        43.0,
+        129.0
+      ]
+    },
+    {
+      "k": 2,
+      "n_states": 82,
+      "R_inf": 0.6001,
+      "KS_D": 0.3642,
+      "KS_p": 0.0,
+      "L_inf": 0.2141,
+      "passed": false,
+      "model_succ_pctiles": [
+        9.0,
+        41.0,
+        125.0
+      ]
+    },
+    {
+      "k": 3,
+      "n_states": 318,
+      "R_inf": 0.5461,
+      "KS_D": 0.4247,
+      "KS_p": 0.0,
+      "L_inf": 0.3421,
+      "passed": false,
+      "model_succ_pctiles": [
+        15.0,
+        87.0,
+        257.0
+      ]
+    }
+  ],
+  "accepted_order": null,
+  "staged": [
+    {
+      "stage_window": 6,
+      "n_stages": 16,
+      "n_states": 148,
+      "R_inf": 0.5751,
+      "KS_D": 0.2918,
+      "KS_p": 0.0,
+      "passed": false,
+      "model_succ_pctiles": [
+        11.0,
+        50.0,
+        156.0
+      ]
+    },
+    {
+      "stage_window": 8,
+      "n_stages": 16,
+      "n_states": 139,
+      "R_inf": 0.5777,
+      "KS_D": 0.2909,
+      "KS_p": 0.0,
+      "passed": false,
+      "model_succ_pctiles": [
+        11.0,
+        49.0,
+        152.0
+      ]
+    },
+    {
+      "stage_window": 10,
+      "n_stages": 16,
+      "n_states": 118,
+      "R_inf": 0.5846,
+      "KS_D": 0.3195,
+      "KS_p": 0.0,
+      "passed": false,
+      "model_succ_pctiles": [
+        11.0,
+        45.0,
+        139.0
+      ]
+    }
+  ],
+  "staged_accepted_window": null,
+  "Rinf_abs_err_vs_pass": {
+    "1": 0.0268,
+    "2": 0.0832,
+    "3": 0.1372
+  },
+  "use_cases_valid_on_real_data": {
+    "note": "depend on R_inf, which matches the held-out pass rate; horizon R(d) is withheld because the RDC timing is rejected.",
+    "R_inf": 0.6565,
+    "held_out_pass_rate": 0.6833,
+    "metric_reconciliation": {
+      "pass@1": 0.6565,
+      "pass@5": 0.9952,
+      "pass^1": 0.6565,
+      "pass^5": 0.1219
+    },
+    "fallback_perturbation": {
+      "R_inf_base": 0.6565,
+      "R_inf_with_fallback": 0.6908,
+      "delta_R_inf": 0.0344
+    }
+  }
+}

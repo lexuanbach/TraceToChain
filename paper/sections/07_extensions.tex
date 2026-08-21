@@ -1,0 +1,119 @@
+\section{Extensions}
+\label{sec:ext}
+
+Three extensions help interpret those answers: why an RDC may
+saturate, when a classical reliability-growth curve emerges, and how
+many steps are needed before $R(d)$ approaches $R_\infty$.
+
+\subsection{RDC Shape}
+
+An RDC is more useful when its shape has an explanation: a concave
+curve suggests early steps resolve the easier cases while later ones
+add less, and a convex window suggests a barrier such as waiting on a
+tool response. The following condition captures the common
+early-gains/saturation pattern.
+
+\begin{assumption}[Stochastic monotonicity of $Q$]\label{A:monotone}
+Fix an order $\preceq$ on the transient states. The matrix $Q$ is
+\emph{stochastically monotone} if $Qf$ is non-increasing whenever
+$f:\ST\to\mathbb{R}_{\ge0}$ is; equivalently, later rows of $Q$ place
+stochastically more mass on later states in the
+order~\cite{daley1968stochastic,karlin1968tp,keilsonKester1977}.
+\end{assumption}
+
+\begin{proposition}[RDC shape; Keilson--Kester~\cite{keilsonKester1977},
+Karlin--Rinott~\cite{karlin1980tp2}]
+\label{thm:shape}
+Let $v=e_{s_0}^{\top}$ and $w=R_\oplus$. For
+$R(d)=v(I-Q^d)NR_\oplus$,
+\begin{equation}
+\Delta R(d)=R(d+1)-R(d)=vQ^dw\ge0,
+\label{eq:t4-1stdiff}
+\end{equation}
+and, for $d\ge1$,
+\begin{equation}
+\Delta^2R(d)=R(d+1)-2R(d)+R(d-1)
+           =-vQ^{d-1}(I-Q)w.
+\label{eq:t4-2nddiff}
+\end{equation}
+If $Qw\le w$ componentwise, then $R(d)$ is globally concave.
+Assumption~\ref{A:monotone} together with $w$ non-increasing in the
+state order is the structural regime in which that dominance is
+expected; the concavity conclusion itself needs only $Qw\le w$.
+\end{proposition}
+
+\noindent\emph{Proof idea.}
+The first difference is the probability of exiting to success exactly
+after $d$ transient steps, so reliability never decreases with more
+steps; since $vQ^{d-1}\ge0$, \eqref{eq:t4-2nddiff} makes $Qw\le w$
+sufficient for a nonpositive second difference. A convex empirical
+window instead signals an early barrier.
+
+\subsection{NHPP Rare-Failure Limit}
+
+The absorbing-chain view also explains when aggregate
+reliability-growth curves emerge from step-level behavior---not as a
+separate modeling story but as the rare-failure limiting case in which
+a one-state chain reduces to Goel--Okumoto.
+
+\begin{proposition}[NHPP rare-failure limit; Goel--Okumoto~\cite{goelokt}]
+\label{thm:nhpp}
+Consider a sequence of one-transient-state agent chains with per-step
+success probability $\mu_n$, per-step failure probability
+$\varepsilon_n$, and $Q_n=1-\mu_n-\varepsilon_n$. Suppose
+$\mu_n\to0$, $\varepsilon_n\to0$, $d_n\mu_n\to\Lambda\in(0,\infty)$,
+and $\varepsilon_n/\mu_n\to0$. For any fixed $c>0$ and $d=cd_n$, the
+cumulative first-passage CDF converges to
+\begin{equation}
+R_n(d)\to 1-e^{-c\Lambda},
+\label{eq:t5-GO}
+\end{equation}
+the Goel--Okumoto NHPP mean-value form $m(t)=a(1-e^{-bt})$ with
+normalized $a=1$.
+\end{proposition}
+
+\noindent\emph{Proof idea.}
+For the one-state chain,
+$R_n(d)=\frac{\mu_n}{\mu_n+\varepsilon_n}
+\left(1-(1-\mu_n-\varepsilon_n)^d\right)$. Under rare-failure
+scaling the prefactor tends to one and the geometric term tends to
+$e^{-c\Lambda}$. Outside this low-error regime, the exact closed form
+of Proposition~\ref{thm:closed} should be used.
+
+\subsection{Approach-Rate Bound}
+
+Even when $R_\infty$ is known, a practitioner still needs a step
+budget. The next result converts spectral decay of $Q$ into a
+conservative horizon rule: how many more agent steps are needed before
+the remaining reliability gap is at most $\delta$?
+
+\begin{proposition}[Approach-rate bound; Horn--Johnson~\cite{hornjohnson2013},
+Stewart~\cite{stewart1998}, Levin--Peres~\cite{levin2017markov}]
+\label{thm:mixing}
+Let $\rho=\rho(Q)<1$ and $N=(I-Q)^{-1}$. If
+$Q=V\Lambda V^{-1}$ is diagonalizable, then
+$R_\infty-R(d)\le\kappa_\infty(V)\rho^d\|NR_\oplus\|_\infty$
+with $\kappa_\infty(V)=\|V\|_\infty\|V^{-1}\|_\infty$, so a
+sufficient horizon for error at most $\delta$ is
+\begin{equation}
+d^\star_{\mathrm{diag}}(\delta)=
+\max\!\left\{0,\left\lceil
+\frac{\log(\kappa_\infty(V)\|NR_\oplus\|_\infty/\delta)}
+     {-\log\rho}
+\right\rceil\right\}.
+\label{eq:t6-steps-diag}
+\end{equation}
+For non-diagonalizable $Q$, the same exponential term is multiplied
+by a polynomial factor determined by the largest Jordan block.
+\end{proposition}
+
+\noindent\emph{Proof idea.}
+The gap is $R_\infty-R(d)=e_{s_0}^{\top}Q^dNR_\oplus$, so bounding it
+reduces to bounding $\|Q^d\|$; diagonalization gives
+$\|Q^d\|_\infty\le\kappa_\infty(V)\rho^d$ and Jordan blocks add a
+polynomial multiplier, so large $\rho(Q)$ or ill-conditioned
+eigenvectors imply longer step budgets. Together these results connect
+finite-horizon reliability, classical reliability growth, and
+conservative step budgets within one fitted-chain view.
+
+%% ================================================================

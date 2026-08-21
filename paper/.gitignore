@@ -1,0 +1,11 @@
+# LaTeX build cruft (main.pdf and main.bbl are shipped intentionally)
+*.aux
+*.bbl
+!main.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc

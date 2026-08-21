@@ -1,0 +1,37 @@
+{
+  "description": "Random seeds for SS1-SS5 Monte Carlo simulation studies. All generated from SEED_MASTER using NumPy default_rng.",
+  "generated_on": "2026-04-20",
+  "seeds": {
+    "SS1_cf_vs_mc": {
+      "master_seed": 2026042001,
+      "n_chains_per_size": 500,
+      "n_trajectories": 100000,
+      "sizes": [5, 10, 50, 100, 500]
+    },
+    "SS2_perturbation": {
+      "master_seed": 2026042002,
+      "n_chains": 100,
+      "m": 10,
+      "eps_vals": "np.linspace(0, 0.28, 21)"
+    },
+    "SS3_correlation": {
+      "master_seed": 2026042003,
+      "m": 5,
+      "q_vals": [0.1, 0.3, 0.5, 0.7, 0.9],
+      "k_vals": [1, 2, 3, 5, 10, 20]
+    },
+    "SS4_nhpp_limit": {
+      "master_seed": 2026042004,
+      "m_chain": 50,
+      "lambda_target": 2.0,
+      "eps_sequence": [0.2, 0.1, 0.05, 0.02, 0.01, 0.005]
+    },
+    "SS5_prism_cross": {
+      "master_seed": 2026042005,
+      "n_chains": 5,
+      "m": 5,
+      "d_horizon": 20
+    }
+  },
+  "notes": "To reproduce: use numpy.random.default_rng(master_seed) and draw chain seeds sequentially using rng.integers(0, 2**32)."
+}

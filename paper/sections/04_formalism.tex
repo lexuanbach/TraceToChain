@@ -1,0 +1,116 @@
+\section{Formalism}
+\label{sec:formal}
+
+\begin{definition}[Agent Markov chain]\label{def:amc}
+An \emph{agent Markov chain} (AMC) is a tuple
+$\hat M=(\ST,\hat Q,\hat R_\oplus,\hat R_\ominus,s_0)$
+where $\ST$ is a finite set of transient \emph{execution states}
+obtained from trace featurization
+(\S\ref{sec:state_construction}); $\hat Q\in[0,1]^{|\ST|\times|\ST|}$
+is a substochastic transition matrix on $\ST$;
+$\hat R_\oplus,\hat R_\ominus\in[0,1]^{|\ST|}$ are absorption vectors
+into task-complete state $\oplus$ and fatal-failure state
+$\ominus$ with $\hat Q\mathbf{1}+\hat R_\oplus+\hat R_\ominus=\mathbf{1}$
+(mass conservation); and $s_0\in\ST$ is the initial state (or an
+initial distribution~$\pi_0$). Figure~\ref{fig:markov_chain}
+visualizes a small AMC.
+\end{definition}
+
+\begin{definition}[Reliability]\label{def:reliab}
+The $d$-step reliability is
+$\mathcal R(d;\hat M)=\Pr[\tau_\oplus\le d\mid X_0=s_0]$
+and the asymptotic reliability is
+$R_\infty=\lim_{d\to\infty}\mathcal R(d;\hat M)$. The fundamental
+matrix is $N\triangleq(I-\hat Q)^{-1}$~\cite{kemenysnell}, which
+yields the closed form in Prop.~\ref{thm:closed}.
+\end{definition}
+
+\noindent\textbf{Model assumptions.}
+The model makes four assumptions that are visible in the fitted
+object rather than hidden in an external specification. Transience
+means that the process eventually leaves the transient state space;
+equivalently, the spectral radius $\rho(\hat Q)$ is less than one.
+This also makes $I-\hat Q$ invertible and gives the fundamental
+matrix $N$. The initial condition is either a fixed start state $s_0$
+or a known initial distribution $\pi_0$; formulas below use $s_0$ for
+readability, with $e_{s_0}^{\top}$ replaced by $\pi_0^{\top}$ in the
+distributional case. Finally, pass$@k$ and pass$^k$ require
+i.i.d.\ repeated trials unless the correlated-trial diagnostic in
+Theorem~\ref{thm:corr} is used. The first-order Markov property is
+not taken on faith: the order-selection and goodness-of-fit tests in
+\S\ref{sec:order_selection} and \S\ref{sec:gof} report when the trace
+corpus does not support the fitted absorbing DTMC.
+
+\begin{assumption}[Transience]\label{A:trans}
+$\rho(\hat Q)<1$.
+\end{assumption}
+\begin{assumption}[Invertibility]\label{A:inv}
+$(I-\hat Q)$ is invertible.
+\end{assumption}
+\begin{assumption}[Initial condition]\label{A:init}
+$s_0$ is deterministic (extensions replace $e_{s_0}^\top$ by
+$\pi_0^\top$).
+\end{assumption}
+\begin{assumption}[I.i.d.\ replications]\label{A:iid}
+For pass$^k$ and pass$@k$, trials are i.i.d.\ unless noted.
+\end{assumption}
+
+\begin{definition}[Local perturbation family]\label{def:perturb}
+For sensitivity analysis, let
+$Q(\varepsilon)=Q_0+\varepsilon\Delta$ for
+$0\le\varepsilon\le\varepsilon_{\max}$, where rows remain
+substochastic and $\rho(Q(\varepsilon))<1$. The success-exit vector
+$R_{\oplus,0}$ is held fixed, and any removed transient mass is
+assigned to the failure absorber so that
+$Q(\varepsilon)\mathbf{1}+R_{\oplus,0}+R_{\ominus}(\varepsilon)
+=\mathbf{1}$. This models a local design change, such as adding a
+fallback tool, without re-running the full benchmark.
+\end{definition}
+
+\begin{figure}[!t]
+  \centering
+  \begin{tikzpicture}[
+      >=Stealth,
+      scale=0.85, every node/.style={transform shape},
+      transient/.style={circle, draw=blue!80, fill=blue!10, line width=1pt, minimum size=0.9cm, font=\small\bfseries},
+      absorbing/.style={circle, draw=#1, fill=#1, fill opacity=0.15, text opacity=1, line width=1.5pt, minimum size=1cm, font=\small\bfseries, double, double distance=1.5pt, double=white},
+      trans/.style={->, draw=gray!80, line width=0.8pt, font=\scriptsize},
+      tosucc/.style={->, draw=green!60!black, line width=1pt, font=\scriptsize},
+      tofail/.style={->, draw=red!70, line width=1pt, font=\scriptsize}
+  ]
+      % States
+      \node[transient] (s0) at (0, 2.2)  {$s_0$};
+      \node[transient] (s1) at (0, 0)    {$s_1$};
+      \node[transient] (s2) at (0,-2.2)  {$s_2$};
+      \node[absorbing=green!60!black] (succ) at (4.5, 1.1)  {$\oplus$};
+      \node[absorbing=red!70]   (fail) at (4.5,-1.1)  {$\ominus$};
+
+      % Transitions (Q)
+      \draw[trans] (s0) edge[loop left, looseness=4, out=160, in=200] node[left] {0.5} (s0);
+      \draw[trans] (s0) -- node[right] {0.3} (s1);
+      \draw[trans] (s1) edge[loop left, looseness=4, out=160, in=200] node[left] {0.4} (s1);
+      \draw[trans] (s1) -- node[right] {0.3} (s2);
+      \draw[trans] (s2) edge[loop left, looseness=4, out=160, in=200] node[left] {0.6} (s2);
+
+      % Transitions (R)
+      \draw[tosucc] (s0) to[bend left=10]  node[above, sloped] {0.1} (succ);
+      \draw[tofail] (s0) to[bend right=10] node[below, sloped] {0.1} (fail);
+      \draw[tosucc] (s1) to[bend left=5]   node[above, sloped] {0.2} (succ);
+      \draw[tofail] (s1) to[bend right=5]  node[below, sloped] {0.1} (fail);
+      \draw[tosucc] (s2) to[bend left=10]  node[above, sloped] {0.3} (succ);
+      \draw[tofail] (s2) to[bend right=10] node[below, sloped] {0.1} (fail);
+
+      % Labels
+      \begin{scope}[on background layer]
+          \node[draw=blue!20, fill=blue!5, rounded corners=5pt, fit=(s0)(s1)(s2), inner sep=10pt] (tbox) {};
+      \end{scope}
+      \node[text=blue!60!black, font=\scriptsize\itshape, above=1pt of tbox] {Transient states $\mathcal{S}_T$};
+  \end{tikzpicture}
+  \caption{Illustration of an Agent Markov Chain. Transitions among transient
+           states (matrix $Q$) model agent logic, while transitions to absorbing
+           states $\oplus$ and $\ominus$ (matrix $R$) represent success and
+           failure respectively.}
+  \label{fig:markov_chain}
+\end{figure}
+
+%% ================================================================

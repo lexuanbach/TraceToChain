@@ -1,0 +1,37 @@
+%% notation.tex -- Frozen notation sheet for the MCR-Agent paper.
+%% Do not edit after Phase 1 exits without circulating a change note.
+
+\section*{Notation Sheet (Frozen 2026-04-20)}
+
+\begin{tabular}{@{}lp{9cm}@{}}
+\hline
+\textbf{Symbol} & \textbf{Meaning} \\
+\hline
+$\mathcal{S}$              & State space of the absorbing Markov chain. \\
+$\mathcal{S}_T$            & Transient states; $|\mathcal{S}_T|=m$. \\
+$\oplus,\ominus$           & Absorbing states: success, failure. \\
+$P\in\mathbb{R}^{(m+2)\times(m+2)}$ & Full transition matrix. \\
+$Q\in\mathbb{R}^{m\times m}$        & Transient-to-transient block of $P$ (substochastic). \\
+$R\in\mathbb{R}^{m\times 2}$        & Transient-to-absorbing block; $R=[R_\oplus\; R_\ominus]$. \\
+$N=(I-Q)^{-1}$             & Fundamental matrix; exists iff $\rho(Q)<1$. \\
+$e_i$                      & $i$-th standard basis vector (appropriate dimension). \\
+$\mathbf{1}$               & All-ones vector. \\
+$s_0\in\mathcal{S}_T$      & Initial state (or $\pi_0$ a distribution over $\mathcal{S}_T$). \\
+$d\in\mathbb{N}_{\ge 0}$   & Horizon (number of steps). \\
+$R(d)$                     & Trajectory reliability at horizon $d$ (Def.~2). \\
+$R_\infty$                 & Asymptotic reliability $\lim_{d\to\infty}R(d)$ (Def.~3). \\
+$k\in\mathbb{N}_{\ge 1}$   & Number of i.i.d.\ replications. \\
+$\rho(A)$                  & Spectral radius of matrix $A$. \\
+$\|A\|_\infty$             & Induced $\infty$-norm (max row sum of $|A|$). \\
+$\varepsilon$              & Tool-error rate / perturbation magnitude. \\
+$\Delta$                   & Perturbation direction matrix (Def.~4). \\
+$\lambda$                  & Poisson rate in the NHPP limit (Thm.~5). \\
+$\xi$                      & Latent correlation variable (Thm.~3$'$). \\
+\hline
+\end{tabular}
+
+\paragraph{Conventions.}
+(i) Row vectors left-multiply matrices; column vectors right-multiply.
+(ii) $R_\oplus$ is the first column of $R$ (success column).
+(iii) Where we write $e_{s_0}^\top$ without qualification, the dimension is $m$.
+(iv) All matrices are real-valued unless otherwise stated.

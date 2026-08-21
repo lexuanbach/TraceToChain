@@ -1,0 +1,75 @@
+\section{Robustness and Sensitivity (SS11--SS13)}
+\label{sec:robustness}
+
+The diagnostics and estimates depend on three modeling choices---the
+clustering that builds the state space, the treatment of censored traces, and
+the bootstrap path---and this section reports a controlled sensitivity study
+for each.
+
+\paragraph{SS11: clustering and featurization sensitivity.}
+Because the certificate is a \emph{joint} test of featurization, clustering,
+and the first-order assumption, its verdict could in principle be an artifact
+of the clustering. We therefore re-ran the SS10 fit across $18$
+configurations: two featurizations (action-category one-hot, with and without
+a step-depth feature), three agglomerative linkages (Ward, average, complete),
+and three cluster-count caps $k_{\max}\in\{6,8,10\}$. Table~\ref{tab:ss11}
+reports the result: the composite verdict is \emph{invariant}, with all $18$
+configurations rejecting the first-order absorbing DTMC. The held-out
+first-passage KS test rejects ($p<10^{-3}$) in every configuration, including
+the three category-only settings at $k_{\max}{=}10$ where the AIC order-test
+component alone would accept a first-order chain---so the held-out KS layer is
+the binding, clustering-robust component of the certificate, exactly as
+intended. The recovered state count $m$ tracks $k_{\max}$ (range $6$--$10$) and
+the silhouette varies with featurization, but $\hat R_\infty$ is stable across
+all configurations ($0.660$--$0.674$): neither the estimate nor the verdict
+moves appreciably with the clustering choice.
+
+\emph{Reconciling the two SWE-bench $R_\infty$ estimates.} The
+$\hat R_\infty$ column of Table~\ref{tab:ss11} and the $R_\infty=0.656$ of
+SS14 come from different fits of the same benchmark, so each must be read
+against its own target: the $160$-trace sub-sample used here has a held-out
+pass rate of $0.663$, whereas SS14's full $479$-trace corpus has $0.683$. Read
+that way, both are well calibrated---every configuration in the grid lands
+within $0.012$ of $0.663$, and SS14 within $0.027$ of $0.683$---so neither
+sub-sampling nor the choice of state space distorts the asymptotic estimate.
+Because it uses the whole corpus and needs no clustering, the calibration claim
+of \S\ref{sec:ss14} and the SWE-bench point of Fig.~\ref{fig:calibration} are
+taken from the SS14 fit; $R_\infty$ should in general be reported against the
+held-out rate of the split that produced it.
+
+\input{../data/swebench_real/SS11_ablation.tex}
+
+\paragraph{SS12: censoring sensitivity.}
+The censoring figures reported elsewhere ($\le 10\%$) are mild, and real
+deployments may truncate far more aggressively. We took a known ground-truth
+absorbing chain ($R_\infty = 0.784$), sampled $600$ trajectories, and refit
+\textsc{TraceToChain} after right-censoring a controlled fraction of traces
+(truncating at a uniform-random transient step and marking the trace as
+censored, neither success nor failure). Under this non-informative censoring the recovered
+$\hat R_\infty$ stays within $\approx\!4\%$ of the truth at every level: the
+relative bias moves only over $[-4.2\%, -2.6\%]$ across censoring fractions
+$0$--$50\%$, against $-3.3\%$ with no censoring at all, so censoring
+contributes almost none of the residual. Censored traces still contribute
+their observed transient transitions but are correctly excluded from the
+absorption counts, so the exit estimates are not materially biased. This
+holds for censoring independent of the outcome; \emph{informative} censoring
+(e.g.\ a step budget that truncates precisely the long, failure-bound
+trajectories) could still bias the estimates, and detecting that regime is
+left to future work.
+
+%% [REDUCTION] tab:ss12 is a nearly-flat 7-row column whose every value is
+%% quoted inline below; retained in the artifact.
+%% \input{../data/swebench_real/SS12_censoring.tex}
+
+\paragraph{SS13: bootstrap path and uncertainty understatement.}
+The intervals of \S\ref{sec:uq} are reported via the fast bootstrap path, which
+holds the target clustering fixed (nearest-centroid reassignment of resampled
+steps). The module also implements a full re-cluster bootstrap
+(\texttt{fast=False}) that re-runs Ward clustering on every resample and so
+additionally captures clustering instability. On a controlled $250$-trace
+corpus the full re-cluster path gives transition intervals whose median
+half-width is $\approx\!4.7\times$ that of the fixed-clustering path ($0.158$
+vs.\ $0.034$). The fixed-clustering intervals therefore understate total
+uncertainty and should be read as a lower bound conditioned on the chosen
+clustering; we recommend reporting the full re-cluster path (or both) when
+clustering stability is in question.

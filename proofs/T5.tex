@@ -1,0 +1,158 @@
+%% T5.tex -- Proposition 5: NHPP limit under rare-failure scaling.
+%% REVISED: separates survival S(d) from cumulative first-passage R(d);
+%% proves the Goel--Okumoto limit for the CDF of T_oplus rather than for
+%% the Bernoulli survival function, repairing the sign/monotonicity
+%% inconsistency in the earlier draft.
+
+\noindent\emph{The following is a direct instance of the classical
+Le~Cam / Poisson limit theorem applied to a triangular array of
+Bernoulli step-outcomes, adapted to yield the Goel--Okumoto NHPP
+mean-value function~\cite{goelokt} as the limit of the
+\emph{cumulative first-passage CDF} $R(d)$ (Def.~\ref{def:reliab}),
+not the survival function. The mathematics is textbook; the
+contribution is the \emph{micro-foundation} reading: modern LLM agents
+re-emerge as classical Goel--Okumoto software reliability limits under
+rare-failure scaling, licensing 40 years of NHPP estimation tooling for
+the agent setting.}
+
+\paragraph{Notation (survival vs.\ cumulative success).}
+To eliminate an ambiguity we became aware of during revision, we
+reserve the symbol $R(d)$ strictly for the \emph{cumulative
+first-passage CDF} to the success state, i.e., the
+monotone-\emph{increasing} function
+\begin{equation}
+R(d) \;\triangleq\; \Pr\!\bigl[T_\oplus \le d\bigr], \qquad R(0)=0,\;
+R(d)\uparrow R_\infty \in [0,1],
+\label{eq:R-def}
+\end{equation}
+where $T_\oplus = \inf\{t\ge 0: X_t=\oplus\}$ is the hitting time to
+$\oplus$. We separately denote the \emph{survival function} (the
+probability of \emph{non}-absorption to $\oplus$ by step $d$) by
+\begin{equation}
+S(d) \;\triangleq\; \Pr\!\bigl[T_\oplus > d\bigr],
+\qquad S(0)=1,\; S(d)\downarrow 1-R_\infty.
+\label{eq:S-def}
+\end{equation}
+In general $R(d)+S(d)=1$ along any trajectory that eventually absorbs
+in $\oplus$; and $R(d)+S(d)+\Pr[T_\ominus\le d]$ accounts for the full
+mass when $\ominus$ is also reachable.
+
+\begin{proposition}[NHPP Rare-Failure Limit; adapted from Goel--Okumoto
+\cite{goelokt}]
+\label{thm:nhpp}
+Let $(\mathcal{M}_n)_{n\ge 1}$ be a sequence of agent Markov chains,
+each with a single transient state $s_0$, per-step success probability
+$\mu_n$, and per-step failure probability $\varepsilon_n$, so that
+$Q_n = 1-\mu_n-\varepsilon_n$,
+$R_{\oplus,n}=\mu_n$, $R_{\ominus,n}=\varepsilon_n$.  Assume the
+\emph{rare-failure} scaling
+\begin{equation}
+\mu_n\to 0,\quad \varepsilon_n\to 0,\quad
+d_n\mu_n\to \Lambda\in(0,\infty),\quad
+\varepsilon_n/\mu_n\to 0.
+\label{eq:t5-scaling}
+\end{equation}
+Then the cumulative first-passage CDF $R_n(d)$ (from \eqref{eq:R-def})
+converges, for every fixed $c\in(0,\infty)$ and $d=cd_n$, to
+\begin{equation}
+R_n(d)\;\xrightarrow[n\to\infty]{}\; 1-e^{-c\Lambda},
+\label{eq:t5-GO}
+\end{equation}
+which is the Goel--Okumoto NHPP mean-value function
+$m(t)=a(1-e^{-bt})$ with $a=1$, $b=\Lambda/d_n$. In particular,
+$R_n$ is \emph{monotone increasing} in $d$, $R_n(0)=0$, and
+$R_n(d)\to 1$ as $d\to\infty$.  The step-level failure count
+$F_n$ also converges: $F_n\xrightarrow{d}\mathrm{Poisson}(0)$ (zero in
+the limit), which is the usual rare-failure regime.
+\end{proposition}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof and remarks suppressed from body.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Step 1 --- exact CDF by the fundamental matrix.}
+By Proposition~\ref{thm:closed} (T1) applied to the 1-state chain,
+\begin{equation}
+R_n(d) \;=\; \mu_n \sum_{t=0}^{d-1} Q_n^{\,t}
+\;=\; \mu_n\,\frac{1-Q_n^{\,d}}{1-Q_n}
+\;=\; \frac{\mu_n}{\mu_n+\varepsilon_n}\bigl(1-(1-\mu_n-\varepsilon_n)^d\bigr).
+\label{eq:t5-exact-R}
+\end{equation}
+This is a CDF: it is $0$ at $d=0$ and approaches
+$\mu_n/(\mu_n+\varepsilon_n)\uparrow 1$ as $d\to\infty$.  (The
+corresponding survival function is
+$S_n(d) = 1 - R_n(d) - \frac{\varepsilon_n}{\mu_n+\varepsilon_n}
+         \bigl(1-(1-\mu_n-\varepsilon_n)^d\bigr)
+       = (1-\mu_n-\varepsilon_n)^d$,
+which is monotone \emph{decreasing} from $1$ to $0$. This is the
+quantity that was mislabeled as $R(d)$ in earlier drafts; it is
+the survival function of $T_\oplus$, not its CDF.)
+
+\emph{Step 2 --- algebraic limits.}
+Two factors in \eqref{eq:t5-exact-R}.
+(a) The prefactor: since $\varepsilon_n/\mu_n\to 0$,
+$\mu_n/(\mu_n+\varepsilon_n)\to 1$.
+(b) The exponent:
+$\log(1-\mu_n-\varepsilon_n) = -(\mu_n+\varepsilon_n)(1+o(1))$ as
+$n\to\infty$, so
+$(1-\mu_n-\varepsilon_n)^d = \exp(d\log(1-\mu_n-\varepsilon_n))
+ = \exp(-d(\mu_n+\varepsilon_n)(1+o(1)))$. Using $d=cd_n$
+and $d_n\mu_n\to\Lambda$, $d_n\varepsilon_n/\mu_n\to 0
+\Rightarrow d_n\varepsilon_n\to 0$:
+$d(\mu_n+\varepsilon_n) = cd_n(\mu_n+\varepsilon_n) \to c\Lambda.$
+Combining (a) and (b), $R_n(d) \to 1-e^{-c\Lambda}$, establishing
+\eqref{eq:t5-GO}.
+
+\emph{Step 3 --- generalization to $m$-state forward chains.}
+For a general forward chain with $m$ transient states and per-state
+self-loop probability $1-\mu_n^{(i)}-\varepsilon_n^{(i)}$, the
+hitting time $T_\oplus$ is a sum of $m$ independent geometric
+random variables with rates $\mu_n^{(i)}+\varepsilon_n^{(i)}$.
+Under \eqref{eq:t5-scaling} applied uniformly across states, a
+generalized central-limit / Poisson-limit argument on the triangular
+array of per-step Bernoulli indicators gives the same limit shape
+$R(d)\to 1-e^{-\Lambda d/d_n}$ after a rescaling of time by $m$.
+The resulting mean-value function is precisely Goel--Okumoto with
+asymptotic reliability $a=1$ and rate $b=\Lambda/(md_n)$.
+
+\emph{Step 4 --- step-level failure count.}
+Under \eqref{eq:t5-scaling}, $d_n\varepsilon_n\to 0$, so by the
+classical Poisson limit theorem for triangular arrays
+(Le~Cam's theorem, $d_{\rm TV}(\mathrm{Bin}(d_n,\varepsilon_n),
+\mathrm{Poisson}(d_n\varepsilon_n))\le \varepsilon_n\to 0$), the
+number of step-level failures $F_n\xrightarrow{d}\mathrm{Poisson}(0)$,
+i.e., failures vanish in the scaling limit, consistent with the
+classical ``rare-failure'' regime of Goel--Okumoto.
+\end{proof}
+
+\begin{remark}[Scope and limitations]
+Proposition~\ref{thm:nhpp} holds under rare-failure scaling
+\eqref{eq:t5-scaling}.  For moderate failure rates ($\varepsilon
+\gtrsim 0.1$) or comparable success/failure rates
+($\varepsilon_n/\mu_n\not\to 0$), the limit \eqref{eq:t5-GO} does not
+hold and the exact closed form from Proposition~\ref{thm:closed} should
+be used instead.
+\end{remark}
+
+\begin{remark}[Micro-foundation for NHPP]
+Classical NHPP software reliability models (Goel--Okumoto,
+Musa--Iannino--Okumoto) postulate an intensity function $\lambda(t)$
+for fault occurrences and fit it phenomenologically.
+Proposition~\ref{thm:nhpp} shows that the Goel--Okumoto mean-value
+function $1-e^{-bd}$ \emph{re-emerges from first principles} as the
+limit of the cumulative first-passage CDF of a rare-failure agent
+Markov chain.  The agent-chain formalism thus provides the previously
+missing mechanistic justification for applying NHPP estimators to LLM
+agent reliability.
+\end{remark}
+
+\begin{remark}[Re: Kolmogorov--Smirnov test in SS4]
+Simulation study SS4 fits the Goel--Okumoto model to the empirical
+first-passage CDF $R_n(d)=\Pr[T_\oplus\le d]$ (not the survival
+function $S_n(d)$) for several values of $\varepsilon_n/\mu_n$ and
+reports the two-sample KS $p$-value; the null hypothesis
+(empirical CDF follows $1-e^{-\mu d}$) is retained at $\alpha=0.05$
+for $\varepsilon_n/\mu_n\le 0.1$ and $\mu_n d_n\to\Lambda=2$ fixed.
+\end{remark}
+\fi

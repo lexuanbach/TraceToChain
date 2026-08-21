@@ -1,0 +1,13 @@
+# Larger default fonts for all SS figures (addresses R2.W5: plot fonts too
+# small in Figs 5-9). matplotlib auto-loads this file when scripts are run
+# from code/sim. Regenerating any SS figure picks up these sizes.
+font.size:        13
+axes.titlesize:   14
+axes.labelsize:   13
+xtick.labelsize:  12
+ytick.labelsize:  12
+legend.fontsize:  12
+figure.titlesize: 15
+lines.linewidth:  2.0
+savefig.dpi:      200
+savefig.bbox:     tight

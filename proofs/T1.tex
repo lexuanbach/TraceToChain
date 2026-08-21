@@ -1,0 +1,68 @@
+%% T1.tex -- Proposition 1: Closed-form reliability via the fundamental matrix.
+
+\noindent\emph{The following proposition is a direct adaptation of the
+Kemeny--Snell fundamental-matrix identity \cite[Ch.~3]{kemenysnell} for
+absorbing DTMCs, specialized to the agent state space
+(Definition~\ref{def:amc}). No new mathematical content is claimed.}
+
+\begin{proposition}[Closed-Form Reliability; adapted from Kemeny--Snell \cite{kemenysnell}]
+\label{thm:closed}
+Under Assumptions~\ref{A:trans}--\ref{A:init}, for every $d\in\mathbb{N}_{\ge 0}$,
+\begin{equation}
+R(d) \;=\; e_{s_0}^\top(I-Q^{d})\,N\,R_\oplus,
+\qquad N \triangleq (I-Q)^{-1},
+\label{eq:t1finite}
+\end{equation}
+and
+\begin{equation}
+R_\infty \;=\; \lim_{d\to\infty}R(d) \;=\; e_{s_0}^\top\,N\,R_\oplus.
+\label{eq:t1inf}
+\end{equation}
+\end{proposition}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof and remarks retained in source but
+%% suppressed from the 12-page body. Full proof is in the
+%% reproducibility artifact at proofs/T1.tex (this file).
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Step 1 — telescoping.}
+For any square matrix $Q$ and $d\ge 1$,
+\[
+(I-Q)\sum_{t=0}^{d-1}Q^{t}
+  \;=\;\sum_{t=0}^{d-1}Q^{t}-\sum_{t=1}^{d}Q^{t}
+  \;=\;I-Q^{d}.
+\]
+\emph{Step 2 — inversion.}
+By A\ref{A:inv}, $(I-Q)$ is invertible, so
+\[
+\sum_{t=0}^{d-1}Q^{t} \;=\; (I-Q)^{-1}(I-Q^{d}) \;=\; N(I-Q^{d}).
+\]
+Substituting into Definition~\ref{def:reliab} gives
+$R(d)=e_{s_0}^\top N(I-Q^{d})R_\oplus$. Since $N$ and $(I-Q^{d})$ are $m\times m$
+matrices that commute
+(because $N$ is a polynomial in $Q$), the product may be written as
+$(I-Q^{d})N$, establishing \eqref{eq:t1finite}.
+
+\emph{Step 3 — limit.}
+A\ref{A:trans} gives $\rho(Q)<1$, so $\|Q^{d}\|\to 0$ as $d\to\infty$ in any
+sub-multiplicative norm. Therefore $(I-Q^{d})\to I$ entry-wise, and
+$R(d)\to e_{s_0}^\top N R_\oplus$, which is \eqref{eq:t1inf}.
+\end{proof}
+
+\begin{remark}
+The entry $N_{ij}$ has the classical interpretation (Kemeny--Snell) as the
+expected number of visits to transient state $j$ starting from state $i$ before
+absorption. Equation~\eqref{eq:t1inf} is therefore a sum over transient
+states of ``visits $\times$ per-step success probability'', which provides
+a sanity check of the algebra.
+\end{remark}
+
+\begin{remark}[Complexity]
+Computing $R_\infty$ by \eqref{eq:t1inf} costs $O(m^3)$ for the inversion,
+dominated by the LU decomposition of $(I-Q)$. Computing $R(d)$ for a
+schedule of horizons $d\in\{d_1,\ldots,d_L\}$ via repeated squaring of $Q$
+costs $O(m^3\log d_{\max})$.
+\end{remark}
+\fi

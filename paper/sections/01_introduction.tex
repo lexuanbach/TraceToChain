@@ -1,0 +1,293 @@
+\section{Introduction}
+\label{sec:intro}
+
+%% --- 1. Context -------------------------------------------------
+Large language model (LLM) agents now run as sequential software
+systems in production: a deployed agent plans, calls tools, observes
+results, retries, and terminates in success or failure, as in
+ReAct-style and tool-using
+designs~\cite{yao2023react,schick2023toolformer,wang2024agentsurvey}.
+Once such an agent sits on a critical path---resolving a support
+ticket, patching a repository, issuing a refund---the operator inherits
+the ordinary obligations of dependability and site reliability
+engineering (SRE)~\cite{avizienis2004dependability,beyer2016sre}:
+state a reliability target, quantify the uncertainty around it, and say
+under what conditions it holds.
+
+%% --- 2. Narrow to the specific problem --------------------------
+Agent evaluation, however, reports reliability as a scalar. Benchmarks
+supply rich execution traces---ToolBench~\cite{qin2023toolllm},
+$\tau$-bench~\cite{taub2024}, SWE-bench~\cite{swebench2024},
+WebArena~\cite{zhou2023webarena}, and
+AgentBench~\cite{agentbench2024}---but summarize them as
+pass$@k$~\cite{chen2021codex}, pass$^k$, or the reliability decay curve
+(RDC)~\cite{rdc2025}. Each score is a different summary of when a run
+succeeds, computed with a different denominator and reported without a
+fit check. Classical software reliability already has the machinery for
+this setting, from Markov program models~\cite{cheung1980} and
+absorbing chains~\cite{kemenysnell} to reliability-growth
+models~\cite{goelokt,musa1987}, and trace-driven frameworks such as
+TriCEGAR~\cite{tricegar2026} and ProbGuard~\cite{pro2guard2025} learn
+Markov abstractions from execution data.
+
+%% --- 3. The gap -------------------------------------------------
+Despite this, no current LLM-agent reliability report names the
+success-time distribution it estimates, tests whether the traces
+support that distribution, or attaches finite-trace uncertainty to it.
+The practical cost is concrete. A team that ships a refund agent at
+$\mathrm{pass}@1 = 0.72$ cannot say what reliability a larger step
+budget buys, what an added fallback tool changes end-to-end, or how an
+internal $\mathrm{pass}^5$ dashboard relates to an SRE
+mean-time-between-failures target---without rerunning the benchmark
+once per question, and still without an interval or a validity check.
+
+%% --- 4. Contribution --------------------------------------------
+In this paper we propose \textsc{TraceToChain}, a pipeline that turns an
+agent trace corpus into an \emph{audited} reliability model. Each
+execution becomes a trajectory in an absorbing discrete-time Markov
+chain (DTMC) $\hat M=(\ST,\hat Q,\hat R_\oplus,\hat R_\ominus,s_0)$
+(Definition~\ref{def:amc}), with transient states $\ST$ for
+intermediate behavior and absorbing states for terminal success and
+failure. What distinguishes \textsc{TraceToChain}
+from prior trace-to-DTMC abstraction is that the fit is not trusted by
+default: a composite Akaike information criterion (AIC) and
+Kolmogorov--Smirnov (KS) certificate gates every reported quantity, and
+Dirichlet-posterior and bootstrap intervals accompany the ones that
+pass. Horizon reliability, local perturbation, and metric
+reconciliation then become first-passage queries on one model
+(Props.~\ref{thm:closed} and~\ref{thm:perturb}, Thm.~\ref{thm:unify}),
+so pass$@k$, pass$^k$, and the RDC stop competing and become
+projections of a single success-time distribution.
+
+%% --- 5. Approach and key results in brief -----------------------
+Figure~\ref{fig:design} shows the pipeline and the study design that
+evaluates it: a strict 50/50 fit/test protocol on seven controlled
+MAST-style corpora, then end-to-end fits on $2{,}459$ real agent
+episodes from two independent benchmarks. In both settings the
+certified outputs track their held-out targets closely, and the
+certificate marks precisely which further outputs its evidence
+supports---the behavior a reliability audit is supposed to have.
+
+%% --- 6. Explicit contributions ----------------------------------
+Our contributions are:
+\begin{enumerate}[(1)]
+  \item \emph{An audited trace-to-chain pipeline.}
+  \textsc{TraceToChain} (\S\ref{sec:state_construction},
+  Algorithms~\ref{alg:trace}--\ref{alg:gof}) maps traces to a fitted
+  absorbing DTMC behind a composite AIC$\,\wedge\,$KS goodness-of-fit
+  certificate, with Dirichlet-posterior and trace-level bootstrap
+  intervals on the chain and every derived quantity (\S\ref{sec:uq}).
+  \item \emph{Metric unification.}
+  pass$@k$, pass$^k$, and the RDC are derived as projections of one
+  success first-passage distribution (Thm.~\ref{thm:unify}), making
+  their denominators explicit and their disagreement resolvable.
+  \item \emph{Held-out validation.}
+  On seven controlled MAST-style frameworks (SS9, \S\ref{sec:ss9}) the
+  pipeline attains maximum RDC error
+  $L_\infty^{\mathrm{RDC}}=0.053$ (median $0.048$) and held-out KS
+  $p>0.05$ on $7/7$ frameworks (min $p=0.83$).
+  \item \emph{Real-trace validation on two benchmarks.}
+  Fitting end-to-end to $479$ SWE-bench~Verified SWE-agent trajectories
+  (SS10--SS14, \S\ref{sec:ss10}) and $1{,}980$ $\tau$-bench episodes
+  (SS15, \S\ref{sec:ss15}) recovers the held-out pass rate to within
+  $0.03$ and to a mean of $0.0075$ respectively, delivering
+  metric-reconciliation and closed-form perturbation answers on real
+  agents while the audit scopes the remaining outputs.
+  \item \emph{Sensitivity analysis.}
+  Clustering, censoring, and bootstrap-path studies
+  (SS11--SS13, \S\ref{sec:robustness}) show the verdict is invariant
+  across $18$ clustering configurations, and that $\hat R_\infty$ stays
+  within $4\%$ of a synthetic ground truth up to $50\%$ censoring.
+\end{enumerate}
+
+%% --- 7. Roadmap -------------------------------------------------
+The rest of this paper is organized as follows.
+\S\ref{sec:related} positions the work; \S\ref{sec:formal} and
+\S\ref{sec:state_construction} define and fit the absorbing-chain
+model; \S\ref{sec:core} and \S\ref{sec:ext} derive the reliability
+results; \S\ref{sec:sim}--\S\ref{sec:robustness} report the controlled,
+real-trace, and sensitivity studies; and
+\S\ref{sec:threats}--\S\ref{sec:conc} discuss limits and implications.
+
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+  >=Stealth, font=\scriptsize\sffamily,
+  st/.style={rectangle, rounded corners=2pt, draw=blue!65!black, fill=blue!6,
+             line width=0.6pt, align=center, text width=1.45cm,
+             minimum height=0.78cm, inner sep=1.5pt},
+  gate/.style={diamond, aspect=1.5, draw=red!60!black, fill=red!8,
+               line width=0.6pt, align=center, inner sep=0.5pt, font=\tiny\sffamily},
+  good/.style={rectangle, rounded corners=2pt, draw=green!55!black, fill=green!8,
+               line width=0.7pt, align=center, text width=2.55cm,
+               minimum height=0.95cm, inner sep=2pt},
+  bad/.style={rectangle, rounded corners=2pt, draw=orange!70!black, fill=orange!9,
+              line width=0.6pt, align=center, text width=1.75cm,
+              minimum height=0.95cm, inner sep=2pt},
+  ev/.style={rectangle, rounded corners=2pt, draw=gray!55, fill=gray!5,
+             line width=0.5pt, align=left, text width=2.28cm, inner sep=2.5pt,
+             font=\tiny\sffamily},
+  ar/.style={->, draw=gray!75, line width=0.7pt},
+  dar/.style={->, draw=gray!50, line width=0.5pt, dashed, shorten >=1pt}]
+  \node[st] (tr)  at (0.80, 0)     {agent\\traces $\mathcal T$};
+  \node[st] (fe)  at (3.15, 0)     {featurize $\phi$\\+ cluster};
+  \node[st] (mle) at (5.50, 0)     {Laplace MLE\\$\hat Q,\hat R_\oplus,\hat R_\ominus$};
+  \node[gate] (g) at (5.50, -1.45) {AIC\\$\wedge$\,KS};
+  \node[good] (ok) at (1.75, -1.45)
+      {\textbf{certified}\\$\mathcal R(d)$, $R_\infty$, pass$@k$,\\pass$^k$, $\Delta R_\infty$ $+$ 95\% CI};
+  \node[bad] (no) at (7.55, -1.45) {\textbf{withheld}\\re-featurize /\\richer model};
+  \draw[ar] (tr) -- (fe);
+  \draw[ar] (fe) -- (mle);
+  \draw[ar] (mle) -- (g);
+  \draw[ar] (g) -- node[above, font=\tiny] {pass} (ok);
+  \draw[ar] (g) -- node[above, font=\tiny] {fail} (no);
+  \draw[gray!35, line width=0.4pt] (-0.05,-2.42) -- (8.45,-2.42);
+  \node[anchor=west, font=\tiny\itshape, text=gray!45!black]
+       at (-0.05,-2.63) {Evaluation design};
+  \node[ev] (e1) at (1.25, -3.62)
+      {\textbf{Controlled}\\SS1 closed form vs.\ MC\\SS7 gate Type-I/II\\SS9 held-out, 7 corpora};
+  \node[ev] (e2) at (4.20, -3.62)
+      {\textbf{Real traces}\\SS10/SS14 SWE-bench\\($479$ trajectories)\\SS15 $\tau$-bench ($1{,}980$)};
+  \node[ev] (e3) at (7.15, -3.62)
+      {\textbf{Sensitivity}\\SS11 clustering ($18$)\\SS12 censoring ($0$--$50\%$)\\SS13 bootstrap path};
+  \draw[dar] (e1.north) -- ++(0,0.42);
+  \draw[dar] (e2.north) -- ++(0,0.42);
+  \draw[dar] (e3.north) -- ++(0,0.42);
+\end{tikzpicture}
+\caption{\textsc{TraceToChain} pipeline and evaluation design.}
+\label{fig:design}
+\end{figure}
+
+%% [REDUCTION] The three-column motivating figure is suppressed for the
+%% 12-page body; the paragraph above states Q1--Q3 and points at the
+%% results that answer them. Retained in source for the artifact.
+\iffalse
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    >=Stealth,
+    font=\scriptsize\sffamily,
+    hdr/.style={font=\bfseries\sffamily\scriptsize, align=center},
+    q/.style={rectangle, rounded corners, draw=orange!80!black,
+              fill=orange!10, line width=0.7pt, align=left,
+              text width=2.15cm, inner sep=2.5pt, minimum height=1.25cm},
+    s/.style={rectangle, rounded corners, draw=red!60!black,
+              fill=red!6, line width=0.7pt, align=left,
+              text width=2.15cm, inner sep=2.5pt, minimum height=1.25cm},
+    a/.style={rectangle, rounded corners, draw=green!55!black,
+              fill=green!6, line width=0.7pt, align=left,
+              text width=2.15cm, inner sep=2.5pt, minimum height=1.25cm},
+    lbl/.style={font=\scriptsize\itshape, text=gray!50!black},
+    arr/.style={->, draw=gray!70, line width=0.7pt},
+    xscale=1.0, yscale=1.0,
+]
+    % column centers
+    \def\colQ{0}
+    \def\colS{2.75}
+    \def\colA{5.5}
+    % row y-coordinates
+    \def\rowH{0.85}
+    \def\rowA{-0.5}
+    \def\rowB{-2.05}
+    \def\rowC{-3.6}
+
+    % Headers
+    \node[hdr] at (\colQ, \rowH)
+        {Question};
+    \node[hdr] at (\colS, \rowH)
+        {Scalar metric};
+    \node[hdr] at (\colA, \rowH)
+        {Fitted chain $\hat M$};
+
+    % Row 1: budget
+    \node[q] (q1) at (\colQ, \rowA)
+        {\textbf{Q1.} If $d{=}8\!\to\!16$, what reliability?};
+    \node[s] (s1) at (\colS, \rowA)
+        {Re-run at each $d$. No interval or extrapolation.};
+    \node[a] (a1) at (\colA, \rowA)
+        {$\mathcal R(d)$ on any grid
+         (Prop.~\ref{thm:closed}) + 95\% interval.};
+
+    % Row 2: fallback tool
+    \node[q] (q2) at (\colQ, \rowB)
+        {\textbf{Q2.} Add fallback search: $\Delta R_\infty$?};
+    \node[s] (s2) at (\colS, \rowB)
+        {Re-run full benchmark for one new point.};
+    \node[a] (a2) at (\colA, \rowB)
+        {Bound $\Delta R_\infty$
+         locally (Prop.~\ref{thm:perturb}).};
+
+    % Row 3: metric zoo
+    \node[q] (q3) at (\colQ, \rowC)
+        {\textbf{Q3.} pass$^5$ vs.\ SRE-MTBF: which is right?};
+    \node[s] (s3) at (\colS, \rowC)
+        {Two denominators and ad hoc reconciliation.};
+    \node[a] (a3) at (\colA, \rowC)
+        {Both are marginals of one success-time distribution
+         (Thm.~\ref{thm:unify}).};
+
+    \draw[arr] (q1) -- (s1);
+    \draw[arr] (s1) -- (a1);
+    \draw[arr] (q2) -- (s2);
+    \draw[arr] (s2) -- (a2);
+    \draw[arr] (q3) -- (s3);
+    \draw[arr] (s3) -- (a3);
+\end{tikzpicture}
+\caption{Motivating example: a fitted absorbing chain turns one trace
+         corpus into horizon, perturbation, and metric-reconciliation
+         queries.}
+\label{fig:motivating}
+\end{figure}
+\fi
+
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Expanded contributions block retained
+%% for the artifact but replaced above with a prose paragraph
+%% to save ~30 lines in the 12-page body.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{enumerate}[(C1)]
+  \item \emph{\textsc{TraceToChain} pipeline and goodness-of-fit
+        certificate} (\S\ref{sec:state_construction},
+        Algorithms~\ref{alg:trace}--\ref{alg:gof}): agglomerative
+        Ward clustering with silhouette-chosen $m$, Laplace-smoothed
+        MLE with explicit time-homogeneity, variable-horizon, and
+        right-censoring semantics, plus a composite AIC$\,\wedge\,$KS
+        test that certifies whether an agent trace corpus is
+        adequately modeled by a first-order absorbing DTMC.
+  \item \emph{Uncertainty quantification}
+        (\S\ref{sec:uq}, \texttt{mcr.uncertainty}): closed-form
+        Dirichlet posterior credible intervals on every entry of
+        $\hat Q, \hat R_\oplus, \hat R_\ominus$ (Beta-marginal
+        Dirichlet-Multinomial conjugacy) plus a trace-level
+        non-parametric bootstrap. Every downstream reliability
+        quantity inherits a calibrated CI.
+  \item \emph{Held-out empirical validation}
+        (\S\ref{sec:ss7}, \S\ref{sec:mast}): we fit on a
+        randomly-sampled half of each framework's MAST-derived
+        corpus and report, on the truly held-out half, (i)~the
+        empirical RDC overlaid on the analytic $\mathcal R(d)$,
+        (ii)~the Kolmogorov--Smirnov distance $D_{\mathrm{KS}}$ and
+        $p$-value, and (iii)~the $L_\infty$ RDC error.
+        SS7 additionally validates the Type-I/Type-II error of the
+        composite test on synthetic chains with known ground truth.
+  \item \emph{Metric unification} (Theorem~\ref{thm:unify},
+        Corollary~\ref{cor:diag}): pass$@k$, pass$^k$, and the RDC
+        are all restrictions of the same first-passage distribution.
+        A correlated-trial correction gives a Jensen-gap diagnostic
+        that flags when independent-trial assumptions fail.
+  \item \emph{Classical analytic tools, application-layer}
+        (Propositions~\ref{thm:closed}--\ref{thm:mixing}):
+        closed-form $\mathcal R(d)$, $R_\infty$, and $\mathrm{MTTA}$;
+        a condition-number sensitivity bound; RDC-shape sufficient
+        conditions; the Goel--Okumoto NHPP limit; and a spectral
+        horizon bound. Each is attributed and framed as an
+        application of an established result.
+  \item \emph{Reproducibility artifact}: the entire pipeline (six
+        simulation studies, the MAST corpus, and all tables /
+        figures in this paper) runs on a laptop in under
+        $15$ minutes with a single command.
+\end{enumerate}
+\fi
+%% ----------------------------------------------------------------

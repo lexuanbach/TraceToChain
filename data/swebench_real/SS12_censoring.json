@@ -1,0 +1,56 @@
+{
+  "true_Rinf": 0.7843181998300178,
+  "N": 600,
+  "m_true": 5,
+  "rows": [
+    {
+      "censor": 0.0,
+      "m": 5,
+      "Rinf_hat": 0.7581,
+      "abs_bias": -0.0262,
+      "rel_bias_pct": -3.34
+    },
+    {
+      "censor": 0.05,
+      "m": 5,
+      "Rinf_hat": 0.7555,
+      "abs_bias": -0.0289,
+      "rel_bias_pct": -3.68
+    },
+    {
+      "censor": 0.1,
+      "m": 5,
+      "Rinf_hat": 0.7555,
+      "abs_bias": -0.0288,
+      "rel_bias_pct": -3.67
+    },
+    {
+      "censor": 0.2,
+      "m": 5,
+      "Rinf_hat": 0.7639,
+      "abs_bias": -0.0204,
+      "rel_bias_pct": -2.6
+    },
+    {
+      "censor": 0.3,
+      "m": 5,
+      "Rinf_hat": 0.7551,
+      "abs_bias": -0.0292,
+      "rel_bias_pct": -3.72
+    },
+    {
+      "censor": 0.4,
+      "m": 5,
+      "Rinf_hat": 0.7518,
+      "abs_bias": -0.0325,
+      "rel_bias_pct": -4.15
+    },
+    {
+      "censor": 0.5,
+      "m": 5,
+      "Rinf_hat": 0.7562,
+      "abs_bias": -0.0281,
+      "rel_bias_pct": -3.58
+    }
+  ]
+}

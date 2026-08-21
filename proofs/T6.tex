@@ -1,0 +1,241 @@
+%% T6.tex -- Proposition 6: Mixing bound / approach rate to R_infinity.
+%%
+%% REVISED (2026-04-22):
+%%   * Replaced the informal "generically diagonalizable" handwave with
+%%     (a) an EXPLICIT, norm-agnostic bound for the diagonalizable case
+%%     using the eigenvector condition number kappa_infty(V), and (b) a
+%%     formal Jordan-canonical-form bound for the non-diagonalizable
+%%     case, stating the polynomial factor pi(d;k) arising from the
+%%     nilpotent super-diagonal of a size-k Jordan block.
+%%   * The practical horizon formula (Eq. t6-steps) is now stated in
+%%     two forms: the clean closed form for k=1, and an implicit
+%%     inequality for general k with an explicit upper bound on the
+%%     required horizon inflation.
+%%   * Citations: Horn-Johnson for Jordan-form norm bounds; Stewart
+%%     for the condition-number-of-eigenvectors bound.
+
+\noindent\emph{The following is a direct application of classical
+norm bounds on powers of a matrix with spectral radius below one
+\cite[Ch.~3]{hornjohnson2013} and of the eigenvector-conditioning
+bound \cite[Ch.~1]{stewart1998}, specialized to the absorbing
+agent-chain setting. The mathematical content is textbook; the
+contribution is the \emph{practical horizon} formula derived below,
+which gives an actionable ``how many steps is enough?'' answer for
+agent deployments.}
+
+\paragraph{Norm and matrix conventions.}
+All matrix norms below are the induced $\infty$-norm
+$\|A\|_\infty = \max_i \sum_j |A_{ij}|$ unless otherwise noted.
+For a diagonalizable matrix $Q = V\Lambda V^{-1}$ we write
+$\kappa_\infty(V)\triangleq \|V\|_\infty\|V^{-1}\|_\infty$ for the
+$\infty$-norm condition number of the eigenvector matrix; for a
+general matrix with Jordan decomposition $Q = P J P^{-1}$ we write
+$\kappa_\infty(P) \triangleq \|P\|_\infty\|P^{-1}\|_\infty$.  Let $k$
+denote the size of the largest Jordan block associated with an
+eigenvalue of magnitude $\rho(Q)$; $k=1$ exactly when $Q$ is
+diagonalizable.  Define the Jordan polynomial
+\begin{equation}
+\pi(d;k) \;\triangleq\; \sum_{j=0}^{\min(k-1,d)} \binom{d}{j},
+\qquad d\ge 0,
+\label{eq:jordan-poly}
+\end{equation}
+which satisfies $\pi(d;1)=1$ and, for $d\ge k-1$,
+$\pi(d;k)\le k\,\binom{d}{k-1}\le \tfrac{k}{(k-1)!}(d+1)^{k-1}$.
+
+\begin{proposition}[Approach-Rate Bound; adapted from Horn--Johnson
+  \cite{hornjohnson2013} and Stewart \cite{stewart1998}]
+\label{thm:mixing}
+Under Assumptions~\ref{A:trans}--\ref{A:init} with $\rho\triangleq
+\rho(Q)<1$ and $N=(I-Q)^{-1}$, the absorbing-success gap admits the
+following explicit, norm-agnostic bounds.
+\begin{enumerate}[(i)]
+\item \emph{(Diagonalizable case, $k=1$.)} If $Q = V\Lambda V^{-1}$,
+then
+\begin{equation}
+R_\infty - R(d)
+  \;\le\; \kappa_\infty(V)\,\rho^{d}\,\bigl\|N R_\oplus\bigr\|_\infty,
+  \qquad d\ge 0,
+\label{eq:t6-diag}
+\end{equation}
+and the minimum horizon to bring the gap below $\delta>0$ is
+\begin{equation}
+  d^\star_{\mathrm{diag}}(\delta)
+  \;=\;
+  \Bigl\lceil
+   \frac{\log\bigl(\kappa_\infty(V)\,\|NR_\oplus\|_\infty / \delta\bigr)}{-\log\rho}
+  \Bigr\rceil.
+\label{eq:t6-steps-diag}
+\end{equation}
+
+\item \emph{(General case via Jordan form.)} For an arbitrary $Q$
+with Jordan decomposition $Q=PJP^{-1}$ and largest leading
+Jordan-block size $k$,
+\begin{equation}
+R_\infty - R(d)
+  \;\le\;
+  \kappa_\infty(P)\,\pi(d;k)\,\rho^{d-k+1}\,\bigl\|N R_\oplus\bigr\|_\infty,
+  \qquad d\ge k-1.
+\label{eq:t6-jordan}
+\end{equation}
+The horizon to reach gap $\delta$ is then the smallest $d\ge k-1$
+satisfying
+\begin{equation}
+\kappa_\infty(P)\,\pi(d;k)\,\rho^{d-k+1}\,\|NR_\oplus\|_\infty \;\le\; \delta,
+\label{eq:t6-steps-jordan}
+\end{equation}
+which admits the \emph{explicit upper bound}
+\begin{equation}
+  d^\star(\delta,k)
+  \;\le\;
+  \Bigl\lceil
+    \tfrac{1}{-\log\rho}\,\log\!\tfrac{\kappa_\infty(P)\,k\,\|NR_\oplus\|_\infty}{\delta}
+    + (k-1)\,\bigl(\tfrac{\log(d_0+1)}{-\log\rho}+1\bigr)
+  \Bigr\rceil,
+\label{eq:t6-jordan-bound}
+\end{equation}
+where $d_0$ is the diagonalizable horizon \eqref{eq:t6-steps-diag}
+(with $\kappa_\infty(P)$ in place of $\kappa_\infty(V)$). Thus the
+polynomial Jordan factor inflates the required horizon by an additive
+$(k{-}1)\log(d_0{+}1)/(-\log\rho) + (k{-}1)$ steps, not multiplicatively.
+\end{enumerate}
+\end{proposition}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof and remarks suppressed from body.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Step 1 --- gap formula (unchanged).}
+From Def.~\ref{def:reliabinf} and Thm.~\ref{thm:closed},
+$R_\infty - R(d) = e_{s_0}^\top Q^d N R_\oplus$. Hence
+\[
+\bigl|R_\infty - R(d)\bigr| \;\le\; \|Q^d\|_\infty\,\|NR_\oplus\|_\infty,
+\]
+where we used $\|e_{s_0}^\top\|_\infty=1$. The task is therefore an
+explicit bound on $\|Q^d\|_\infty$.
+
+\emph{Step 2 --- diagonalizable bound (i).}
+If $Q=V\Lambda V^{-1}$, then $Q^d = V\Lambda^d V^{-1}$ and
+sub-multiplicativity of an induced norm gives
+\[
+\|Q^d\|_\infty \;\le\; \|V\|_\infty\,\|\Lambda^d\|_\infty\,\|V^{-1}\|_\infty
+                \;=\; \kappa_\infty(V)\,\|\Lambda^d\|_\infty.
+\]
+The matrix $\Lambda^d=\operatorname{diag}(\lambda_1^d,\dots,\lambda_m^d)$ is
+diagonal, so $\|\Lambda^d\|_\infty = \max_i|\lambda_i|^d = \rho^d$.
+Substituting yields \eqref{eq:t6-diag}. Solving the resulting
+inequality for $d$ yields the closed form \eqref{eq:t6-steps-diag}.
+\emph{This step no longer uses ``generic diagonalizability'' as a
+handwave}: the $\kappa_\infty(V)$ factor is explicit and finite for
+every diagonalizable $Q$, and is $1$ exactly when $V$ is orthogonal
+(the classical normal-matrix case).
+
+\emph{Step 3 --- Jordan-form bound (ii).}
+For general $Q$, let $Q = P J P^{-1}$ with $J$ a direct sum of Jordan
+blocks $J_{k_i}(\lambda_i)$. The block
+$J_k(\lambda) = \lambda I_k + N_k$, where $N_k$ is the $k\times k$
+nilpotent super-diagonal shift, has $N_k^k = 0$, so the binomial
+expansion truncates:
+\begin{equation}
+J_k(\lambda)^d
+  \;=\; \sum_{j=0}^{\min(k-1,d)} \binom{d}{j}\lambda^{d-j}\,N_k^{\,j}.
+\label{eq:jordan-expansion}
+\end{equation}
+Each $N_k^{\,j}$ has entries in $\{0,1\}$ only, with a single $1$ on
+the $j$-th super-diagonal and zeros elsewhere; hence $\|N_k^{\,j}\|_\infty
+= 1$ for $0\le j\le k-1$. Taking $\infty$-norms and summing,
+\begin{align*}
+\bigl\|J_k(\lambda)^d\bigr\|_\infty
+ &\;\le\; \sum_{j=0}^{\min(k-1,d)} \binom{d}{j}\,|\lambda|^{d-j} \\
+ &\;\le\; |\lambda|^{d-k+1}\,\sum_{j=0}^{k-1}\binom{d}{j}\,|\lambda|^{k-1-j}
+  \;\le\; \rho^{d-k+1}\,\pi(d;k),
+\end{align*}
+where the last inequality uses $|\lambda|\le\rho\le 1$ in the second
+factor (so $|\lambda|^{k-1-j}\le 1$) and the definition of $\pi(d;k)$ in
+\eqref{eq:jordan-poly}. Taking $\infty$-norms at the block-diagonal
+level and using sub-multiplicativity through $\kappa_\infty(P)$
+finally gives
+\[
+\|Q^d\|_\infty \;\le\; \kappa_\infty(P)\,\pi(d;k)\,\rho^{d-k+1},
+\qquad d\ge k-1,
+\]
+which combined with Step 1 yields \eqref{eq:t6-jordan}.
+
+\emph{Step 4 --- horizon inflation.}
+Starting from \eqref{eq:t6-steps-jordan}, take logarithms:
+\[
+\log\kappa_\infty(P) + \log\pi(d;k) + (d-k+1)\log\rho
+  \;\le\; \log(\delta/\|NR_\oplus\|_\infty).
+\]
+Using $\pi(d;k)\le k\,\binom{d}{k-1} \le k(d+1)^{k-1}/(k-1)!$ and
+the monotonicity of $\log(1+x)/x$, the rightmost inequality gives
+$\log\pi(d;k) \le \log k + (k-1)\log(d+1)$. Rearranging and using
+$-\log\rho>0$:
+\[
+d \;\le\; k-1 + \frac{1}{-\log\rho}\,
+            \Bigl[\log\tfrac{\kappa_\infty(P)\,k\,\|NR_\oplus\|_\infty}{\delta}
+               + (k-1)\log(d+1)\Bigr].
+\]
+Substituting any fixed $d\ge d_0$ (the diagonalizable horizon) on
+the right-hand side gives an upper bound on the smallest $d$ that
+satisfies the inequality, which is \eqref{eq:t6-jordan-bound}. The
+additive form confirms that the Jordan block inflates the required
+horizon by at most an additive term of order $(k-1)\log d/(-\log\rho)$,
+\emph{not} multiplicatively --- a small correction for the
+$\rho\in[0.5,0.9]$ regime typical of agent chains, in which a size-$2$
+Jordan block adds roughly $2$--$5$ steps.
+\end{proof}
+
+\begin{remark}[When is $k=1$ guaranteed?]
+$k=1$ exactly when $Q$ is diagonalizable. This holds whenever $Q$
+has $m$ distinct eigenvalues (generic perturbation argument) but
+\emph{is not} automatic for structured agent chains. In particular,
+forward-chain agents with a deterministic sub-goal ladder (fixed
+\texttt{while} loops, sequential API calls, or scripted
+branches) typically produce a strictly upper-triangular nilpotent
+component in $Q$, for which eigenvalues of magnitude $\rho$ can
+\emph{coalesce} and produce Jordan blocks of size $k\ge 2$.
+Proposition~\ref{thm:mixing}(ii) is the bound that applies to those
+chains; (i) is only a shortcut when the practitioner has verified
+diagonalizability (which can be tested in $O(m^3)$ by the numerical
+eigendecomposition routine already used in
+\S\ref{sec:sim}).
+\end{remark}
+
+\begin{remark}[Normal chains; the classical case]
+When $Q$ is symmetric (or more generally normal) the eigenvector
+matrix $V$ may be chosen orthogonal, in which case
+$\kappa_\infty(V)\le\sqrt{m}$ by norm-equivalence (orthogonal
+matrices have $\|V\|_2 = 1$ and $\|V\|_\infty \le \sqrt{m}\|V\|_2$)
+and \eqref{eq:t6-diag} reduces to the classical spectral bound
+$\|Q^d\|_2 \le \rho(Q)^d$, recovering the folklore statement that
+the original draft implicitly invoked. The new form
+\eqref{eq:t6-diag} makes the $\kappa_\infty(V)$ cost of a
+non-normal diagonalization explicit.
+\end{remark}
+
+\begin{remark}[Practitioner rule of thumb]
+For the diagonalizable case, \eqref{eq:t6-steps-diag} gives the
+minimum-horizon recommendation directly; the only new cost over the
+original draft is computing $\kappa_\infty(V)$ (one eigendecomposition
+of $\widehat{Q}$). For agent chains with $\rho(Q)\in[0.5,0.9]$ and
+$\kappa_\infty(V)\le 10$, the horizon is between $7$ and $55$ steps for
+$\delta=0.01$. For the Jordan case with $k=2$, the inflation is
+typically $2$--$5$ additional steps (from the additive polynomial
+term); $k\ge 3$ is empirically rare in agent chains we examined and
+can be detected from the eigendecomposition residual
+$\|Q - V\Lambda V^{-1}\|$.
+\end{remark}
+
+\begin{remark}[Connection to mixing times]
+The bound \eqref{eq:t6-jordan} is the absorbing-chain analogue of
+the classical ergodic mixing bound
+$\|\mu_t-\pi\|_\mathrm{TV}\le C_0\,\rho^t$, with
+``mixing'' replaced by ``convergence of the cumulative success
+probability to its absorbing-state limit''. The explicit $\kappa(V)$
+and Jordan-polynomial factors in \eqref{eq:t6-diag} and
+\eqref{eq:t6-jordan} parallel the ``pre-mixing constant'' appearing
+in the non-reversible Markov chain literature
+\cite[Thm.~12.3]{levin2017markov}.
+\end{remark}
+\fi

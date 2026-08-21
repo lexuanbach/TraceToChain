@@ -1,0 +1,157 @@
+\section{Analytic Tools}
+\label{sec:core}
+
+Once a corpus has produced an accepted fitted chain, the question is
+what that chain answers without another benchmark run. Three
+absorbing-chain tools address the deployment questions of
+\S\ref{sec:intro}: reliability at a horizon, sensitivity to a local
+change, and compatibility among common benchmark metrics.
+
+\subsection{Closed-Form Reliability}
+
+The first deployment question is reliability under a step budget:
+starting at $s_0$, what is the chance of reaching $\oplus$ by step
+$d$? In the running loop, this asks whether the agent reaches a
+correct final answer within $d$ reasoning/tool/observation steps.
+
+\begin{proposition}[Closed-form reliability; Kemeny--Snell~\cite{kemenysnell}]
+\label{thm:closed}
+Under Assumptions~\ref{A:trans}--\ref{A:init}, for every
+$d\in\mathbb{N}_{\ge 0}$,
+\begin{equation}
+R(d) = e_{s_0}^\top(I-Q^{d})\,N\,R_\oplus,
+\qquad N=(I-Q)^{-1},
+\label{eq:t1finite}
+\end{equation}
+and
+$R_\infty = \lim_{d\to\infty}R(d) = e_{s_0}^\top N R_\oplus$.
+\end{proposition}
+
+\noindent\emph{Proof idea.}
+Summing all paths that spend $t=0,\ldots,d-1$ steps in transient states
+and then exit to success gives
+$R(d)=e_{s_0}^{\top}\sum_{t=0}^{d-1}Q^tR_\oplus$; the identity
+$\sum_{t=0}^{d-1}Q^t=(I-Q^d)(I-Q)^{-1}$ yields \eqref{eq:t1finite}, and
+transience gives $Q^d\to0$. Since $N_{ij}$ is the expected number of
+visits to state $j$ before absorption, the closed form separates two
+effects an operator can inspect: how often the agent visits each state,
+and how likely success is after those visits.
+
+\subsection{Perturbation Sensitivity}
+
+The second question is counterfactual: if a local transition changes,
+how much can end-to-end reliability move? A new fallback tool may
+change one row of $Q$ by redirecting failed tool calls back to
+planning, and the fitted chain gives a first-order sensitivity
+calculation before any benchmark rerun.
+
+\begin{proposition}[Perturbation sensitivity; Stewart~\cite{stewart1998}]
+\label{thm:perturb}
+Let $Q(\varepsilon)=Q_0+\varepsilon\Delta$ be the perturbation family
+from Definition~\ref{def:perturb}. Write
+$N_0=(I-Q_0)^{-1}$ and let $R_{\oplus,0}$ be the fixed success-exit
+vector. Assume
+$\varepsilon_{\max}\|N_0\|_\infty\|\Delta\|_\infty<1$.
+For every $0\le\varepsilon\le\varepsilon_{\max}$,
+\begin{equation}
+\bigl|R_\infty(\varepsilon)-R_\infty(0)\bigr|
+\le
+\varepsilon \|N_0\|_\infty^2\|\Delta\|_\infty
+        \|R_{\oplus,0}\|_\infty
+ + C\varepsilon^2,
+\label{eq:t2}
+\end{equation}
+with
+$C=\|N_0\|_\infty^3\|\Delta\|_\infty^2\|R_{\oplus,0}\|_\infty
+ /(1-\varepsilon_{\max}\|N_0\|_\infty\|\Delta\|_\infty)$. Moreover,
+\begin{equation}
+R_\infty(\varepsilon)-R_\infty(0)
+=\varepsilon e_{s_0}^{\top}N_0\Delta N_0R_{\oplus,0}
+ + O(\varepsilon^2).
+\label{eq:t2lin}
+\end{equation}
+\end{proposition}
+
+\noindent\emph{Proof idea.}
+Expand $(I-Q(\varepsilon))^{-1}$ with the Neumann series around $Q_0$;
+the smallness condition bounds the remainder by the displayed constant.
+In the first-order term $N_0\Delta N_0$, the left factor counts how
+often execution reaches the changed row and the right factor measures
+success value after the perturbed transition, so a large
+$\|N_0\|_\infty$ warns that small local changes can have large global
+effects. The bound is best read as a screening calculation that
+identifies local changes meriting a new benchmark run. As stated it
+applies to perturbations of $Q$ with $R_\oplus$ fixed; changes to
+success exits require the corresponding linear term for the exit
+vector, and the real-data fallback-tool result of \S\ref{sec:ss14} is
+of that second kind, so we evaluate it exactly from
+Proposition~\ref{thm:closed} rather than through this bound.
+
+\subsection{Metric Unification}
+\label{sec:unify}
+
+The third question is semantic. pass$@k$, pass$^k$, and the RDC often
+appear to be competing summaries, but under the fitted chain they are
+different views of one first-passage distribution: the disagreement is
+about which projection to report, not about the underlying reliability
+event. We keep the benchmark name RDC, but the quantity modeled here is
+the cumulative success probability by horizon $d$.
+
+\begin{theorem}[Metric unification]
+\label{thm:unify}
+Let $R_\infty=e_{s_0}^{\top}NR_\oplus$. Under the i.i.d.\
+replication assumption A\ref{A:iid},
+\begin{align}
+\mathrm{pass}^{k} &= R_\infty^{k}, \label{eq:t3-passk}\\
+\mathrm{pass}@k  &= 1-(1-R_\infty)^{k}, \label{eq:t3-passatk}\\
+\mathrm{RDC}(d)  &= R(d)
+ = e_{s_0}^{\top}(I-Q^{d})NR_\oplus. \label{eq:t3-rdc}
+\end{align}
+Thus the three metrics are restrictions or transformations of the
+same first-passage distribution.
+\end{theorem}
+
+\noindent\emph{Proof idea.}
+pass$^k$ is the probability that all $k$ independent trials succeed,
+pass$@k$ is one minus the probability that all $k$ fail, and the RDC is
+the finite-horizon reliability of Proposition~\ref{thm:closed}.
+
+Repeated agent runs can, however, share latent conditions such as a
+common prompt template, cache state, or task difficulty. The next
+result makes that caveat measurable: it shows how shared variation
+changes the two repeated-trial metrics even when marginal reliability
+remains $R_\infty$.
+
+\begin{theorem}[Correlated-trial inequalities]
+\label{thm:corr}
+Suppose the $k$ trials share a latent state $\xi$ with
+$\Pr[X_i=1\mid\xi]=p(\xi)$ and
+$\mathbb{E}_\xi[p(\xi)]=R_\infty$, and are independent conditional on
+$\xi$. Then
+\begin{align}
+\mathrm{pass}^{k} &= \mathbb{E}_\xi[p(\xi)^k]
+                  \ge R_\infty^k, \label{eq:t3p-passk}\\
+\mathrm{pass}@k  &= 1-\mathbb{E}_\xi[(1-p(\xi))^k]
+                  \le 1-(1-R_\infty)^k. \label{eq:t3p-passatk}
+\end{align}
+For $k\ge2$, equality holds iff $p(\xi)$ is almost surely constant.
+\end{theorem}
+
+\noindent\emph{Proof idea.}
+Condition on the latent variable and apply Jensen's inequality to
+the convex functions $p^k$ and $(1-p)^k$.
+
+\begin{corollary}[Diagnostic]
+\label{cor:diag}
+The gap
+$\widehat{\mathrm{pass}^{k}}-\hat R_\infty^{\,k}$ is a
+lightweight diagnostic for hidden cross-trial correlation. Large
+positive gaps indicate that repeated trials are not behaving as
+i.i.d.\ samples from one fixed chain.
+\end{corollary}
+
+Hidden heterogeneity thus raises all-success estimates and lowers
+at-least-one-success estimates relative to the i.i.d.\ formulas, so a
+large gap should trigger inspection before repeated samples are treated
+as independent trials: an assumption behind pass$@k$ and pass$^k$
+becomes a diagnostic rather than a hidden convention.

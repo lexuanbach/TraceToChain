@@ -1,0 +1,42 @@
+[
+  {
+    "chain_idx": 0,
+    "m": 5,
+    "d": 20,
+    "r_closed_form": 0.09708371324030178,
+    "model_file": "data/synthetic/prism_models/chain_00.pm",
+    "pctl_file": "data/synthetic/prism_models/chain_00.pctl"
+  },
+  {
+    "chain_idx": 1,
+    "m": 5,
+    "d": 20,
+    "r_closed_form": 0.18028715906901668,
+    "model_file": "data/synthetic/prism_models/chain_01.pm",
+    "pctl_file": "data/synthetic/prism_models/chain_01.pctl"
+  },
+  {
+    "chain_idx": 2,
+    "m": 5,
+    "d": 20,
+    "r_closed_form": 0.3357708700249079,
+    "model_file": "data/synthetic/prism_models/chain_02.pm",
+    "pctl_file": "data/synthetic/prism_models/chain_02.pctl"
+  },
+  {
+    "chain_idx": 3,
+    "m": 5,
+    "d": 20,
+    "r_closed_form": 0.2803797316146676,
+    "model_file": "data/synthetic/prism_models/chain_03.pm",
+    "pctl_file": "data/synthetic/prism_models/chain_03.pctl"
+  },
+  {
+    "chain_idx": 4,
+    "m": 5,
+    "d": 20,
+    "r_closed_form": 0.21881605237742097,
+    "model_file": "data/synthetic/prism_models/chain_04.pm",
+    "pctl_file": "data/synthetic/prism_models/chain_04.pctl"
+  }
+]

@@ -1,0 +1,96 @@
+%% T3.tex -- Theorem 3: Metric unification (pass@k, pass^k, RDC).
+
+\begin{theorem}[Metric Unification]
+\label{thm:unify}
+Let $R_\infty=e_{s_0}^\top N R_\oplus$ be the asymptotic reliability of
+$\mathcal{M}$. Under Assumption~\ref{A:iid} (i.i.d.\ replications):
+\begin{align}
+\mathrm{pass}^{k} &\;=\; R_\infty^{\,k}, \label{eq:t3-passk}\\
+\mathrm{pass}@k  &\;=\; 1-(1-R_\infty)^{k}, \label{eq:t3-passatk}\\
+\mathrm{RDC}(d)  &\;=\; R(d) \;=\; e_{s_0}^\top(I-Q^{d})N R_\oplus. \label{eq:t3-rdc}
+\end{align}
+All three metrics are thus restrictions or transformations of the single
+first-passage object $\{R(d),R_\infty\}$ attached to $\mathcal{M}$.
+\end{theorem}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof retained in source, suppressed
+%% from the 12-page body. The three identities follow directly:
+%% (a) pass^k by independence + A4; (b) pass@k = 1 - complement;
+%% (c) RDC = R(d) by definition + Prop.~\ref{thm:closed}.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+Let $X_i\in\{0,1\}$ for $i=1,\ldots,k$ denote success indicators of
+$k$ independent trajectories, each distributed as absorption-in-$\oplus$ of
+$\mathcal{M}$ within the agent's horizon budget.
+
+\emph{Identity \eqref{eq:t3-passk}.}
+$\mathrm{pass}^{k}=\Pr[\bigwedge_i X_i=1]=\prod_i\Pr[X_i=1]=R_\infty^{\,k}$ by A\ref{A:iid}.
+
+\emph{Identity \eqref{eq:t3-passatk}.}
+$\mathrm{pass}@k=\Pr[\bigvee_i X_i=1]=1-\Pr[\bigwedge_i X_i=0]=1-(1-R_\infty)^{k}$.
+
+\emph{Identity \eqref{eq:t3-rdc}.}
+By definition and Theorem~\ref{thm:closed}.
+\end{proof}
+\fi
+
+\begin{theorem}[Correlated-Trial Inequalities; T3$'$]
+\label{thm:corr}
+Suppose the $k$ trials share a latent state $\xi\in\Xi$ with
+$\Pr[X_i=1\mid\xi]=p(\xi)$ for every $i$ (conditional i.i.d.), and unconditional
+mean $\mathbb{E}_\xi[p(\xi)]=R_\infty$. Then
+\begin{align}
+\mathrm{pass}^{k} &\;=\; \mathbb{E}_\xi[p(\xi)^{k}] \;\ge\; R_\infty^{\,k},\label{eq:t3p-passk}\\
+\mathrm{pass}@k  &\;=\; 1-\mathbb{E}_\xi[(1-p(\xi))^{k}] \;\le\; 1-(1-R_\infty)^{k},\label{eq:t3p-passatk}
+\end{align}
+with equality in both iff $p(\xi)$ is a.s.\ constant.
+Moreover, the gap
+$\mathrm{pass}^{k}-R_\infty^{\,k}$ grows in $\mathrm{Var}(p(\xi))$ for any fixed $k\ge 2$.
+\end{theorem}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof of T3' (Jensen-gap) suppressed.
+%% The key fact is only the sign of the gap; full derivation in
+%% the reproducibility artifact.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Identity.} By the tower law,
+$\mathrm{pass}^{k}=\mathbb{E}[\prod_i X_i]=\mathbb{E}_\xi[\prod_i\mathbb{E}[X_i\mid\xi]]=\mathbb{E}_\xi[p(\xi)^{k}]$
+using conditional independence. The pass@$k$ identity is analogous.
+
+\emph{Inequality \eqref{eq:t3p-passk}.}
+The function $p\mapsto p^{k}$ is convex on $[0,1]$ for $k\ge 1$; Jensen's
+inequality gives $\mathbb{E}_\xi[p(\xi)^{k}]\ge(\mathbb{E}_\xi[p(\xi)])^{k}=R_\infty^{\,k}$.
+Equality holds iff $p(\xi)$ is a.s.\ constant (strict convexity for $k\ge 2$;
+$k=1$ is trivial).
+
+\emph{Inequality \eqref{eq:t3p-passatk}.}
+The map $p\mapsto(1-p)^{k}$ is convex on $[0,1]$; apply Jensen, then take $1-(\cdot)$.
+
+\emph{Variance monotonicity.}
+For $k\ge 2$ and $p(\xi)\in[0,1]$, a second-order Taylor expansion of
+$p^{k}$ around $R_\infty$ plus $\mathbb{E}[(p(\xi)-R_\infty)]=0$ gives
+$\mathrm{pass}^{k}-R_\infty^{\,k}=\tbinom{k}{2}R_\infty^{\,k-2}\mathrm{Var}(p(\xi))+O(\mathrm{Var}^{3/2})$,
+which is monotone in $\mathrm{Var}(p(\xi))$ for small variance.
+\end{proof}
+\fi
+
+\begin{corollary}[Diagnostic]
+\label{cor:diag}
+Given empirical estimates $\widehat{\mathrm{pass}^{k}}$ and $\widehat{R_\infty}$,
+the quantity
+$\widehat{\mathrm{pass}^{k}}-\widehat{R_\infty}^{\,k}$ is a consistent estimator
+(up to sampling noise) of a non-negative quantity that is zero iff the i.i.d.\
+assumption holds. It can therefore be reported as a lightweight diagnostic
+for hidden cross-trial correlation.
+\end{corollary}
+%% Remark rem:mixture retained in source; not compiled in body.
+\iffalse
+\begin{remark}[Mixture Models for Correlated Trials]
+\label{rem:mixture}
+When the diagnostic in Corollary~\ref{cor:diag} triggers, it indicates that the standard i.i.d.\ agent trials assumption is violated by latent factors (such as shared prompt prefixes, tool caching, or temperature-0 sampling). In such settings, modeling the agent's behavior as a single Markov chain is insufficient. The mathematically rigorous fallback is to model the agent execution as a \emph{mixture of Markov chains}. Because Theorem~\ref{thm:unify} establishes that the relevant evaluation metrics are all reparameterizations of the first-passage (hitting time) distribution, recovering the latent variable $\xi$ can be formalized as fitting a mixture of Markov chains via hitting-time distributions~\cite{spaeh2024}.
+\end{remark}
+\fi

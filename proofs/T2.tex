@@ -1,0 +1,95 @@
+%% T2.tex -- Proposition 2: First-order perturbation bound.
+
+\noindent\emph{The following is a direct specialization of the standard
+Neumann-series perturbation bound on $(I-Q)^{-1}$
+\cite[Ch.~4]{stewart1998} to the first-row quantity $R_\infty$. The
+mathematical content is classical; the agent-reliability reading of
+$\varepsilon$ as a tool-error-drift parameter is the only new element.}
+
+\begin{proposition}[Perturbation Bound; adapted from Stewart \cite{stewart1998}]
+\label{thm:perturb}
+Let $Q_0,\Delta,\varepsilon$ be as in Definition~\ref{def:perturb}, and let
+$\varepsilon_{\max}$ be such that $\rho(Q(\varepsilon))<1$ for all
+$\varepsilon\in[0,\varepsilon_{\max}]$. Write $N_0=(I-Q_0)^{-1}$ and
+$R_{\oplus,0}$ for the success column of $R$. Then for every
+$\varepsilon\in[0,\varepsilon_{\max}]$,
+\begin{equation}
+\bigl|R_\infty(\varepsilon)-R_\infty(0)\bigr|
+\;\le\;
+\varepsilon \|N_0\|_\infty^{\,2}\,\|\Delta\|_\infty\,\|R_{\oplus,0}\|_\infty
+\,+\,C\,\varepsilon^{2},
+\label{eq:t2}
+\end{equation}
+with $C=\tfrac{\|N_0\|_\infty^{\,3}\|\Delta\|_\infty^{\,2}\|R_{\oplus,0}\|_\infty}%
+{1-\varepsilon_{\max}\|N_0\|_\infty\|\Delta\|_\infty}$.
+In particular, to first order in $\varepsilon$,
+\begin{equation}
+R_\infty(\varepsilon)-R_\infty(0)
+\;=\;\varepsilon\,e_{s_0}^\top N_0\,\Delta\,N_0\,R_{\oplus,0} \;+\; O(\varepsilon^{2}).
+\label{eq:t2lin}
+\end{equation}
+\end{proposition}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof and remarks retained in source but
+%% suppressed from the 12-page body. See reproducibility artifact.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Step 1 — Neumann expansion of the resolvent.}
+Write $A(\varepsilon)=I-Q(\varepsilon)=I-Q_0-\varepsilon\Delta=(I-Q_0)[I-\varepsilon N_0\Delta]$.
+Since $\varepsilon\|N_0\Delta\|_\infty\le\varepsilon_{\max}\|N_0\|_\infty\|\Delta\|_\infty<1$,
+the operator $(I-\varepsilon N_0\Delta)$ is invertible with Neumann series
+\[
+[I-\varepsilon N_0\Delta]^{-1} \;=\; I + \varepsilon N_0\Delta + \sum_{j\ge 2}\varepsilon^{j}(N_0\Delta)^{j}.
+\]
+Therefore
+\begin{equation}
+N(\varepsilon) \;=\; [I-\varepsilon N_0\Delta]^{-1}N_0
+\;=\; N_0+\varepsilon N_0\Delta N_0 + \sum_{j\ge 2}\varepsilon^{j}(N_0\Delta)^{j}N_0.
+\label{eq:neumann}
+\end{equation}
+
+\emph{Step 2 — reliability difference.}
+From Theorem~\ref{thm:closed},
+$R_\infty(\varepsilon)=e_{s_0}^\top N(\varepsilon)R_{\oplus,0}$.
+Here the success column $R_{\oplus}$ is held fixed by
+D\ref{def:perturb}; the perturbation re-routes the removed transient
+mass $-\varepsilon\Delta\mathbf{1}\ge\mathbf{0}$ into the failure
+absorber $R_{\ominus}$ only, preserving the row-stochastic invariant
+$Q(\varepsilon)\mathbf{1}+R_\oplus(\varepsilon)+R_\ominus(\varepsilon)=\mathbf{1}$
+(Remark~\ref{rem:perturb-mass}). Subtracting the $\varepsilon=0$ version,
+\begin{equation}
+R_\infty(\varepsilon)-R_\infty(0)
+\;=\; \varepsilon\,e_{s_0}^\top N_0\Delta N_0 R_{\oplus,0}
+ + \sum_{j\ge 2}\varepsilon^{j}\,e_{s_0}^\top(N_0\Delta)^{j}N_0 R_{\oplus,0}.
+\label{eq:diff}
+\end{equation}
+The first term is the linear response \eqref{eq:t2lin}.
+
+\emph{Step 3 — bounding the tail.}
+Using $\|AB\|_\infty\le\|A\|_\infty\|B\|_\infty$ and $\|e_{s_0}^\top\|_\infty=1$,
+the sum of higher-order terms is bounded in absolute value by
+\begin{align*}
+\sum_{j\ge 2}\varepsilon^{j}\|N_0\Delta\|_\infty^{\,j}\|N_0\|_\infty\|R_{\oplus,0}\|_\infty
+&\le \|N_0\|_\infty\|R_{\oplus,0}\|_\infty \cdot \frac{\varepsilon^{2}\|N_0\Delta\|_\infty^{\,2}}{1-\varepsilon\|N_0\Delta\|_\infty}\\
+&\le \varepsilon^{2}\cdot C,
+\end{align*}
+with $C$ as stated. Combining with the linear term yields \eqref{eq:t2}.
+\end{proof}
+
+\begin{remark}[Interpretation]
+The first-order coefficient $e_{s_0}^\top N_0\Delta N_0 R_{\oplus,0}$ has a clean
+reading: $N_0 R_{\oplus,0}$ gives the column vector whose $i$-th entry is the
+probability of reaching $\oplus$ starting from $i$; $\Delta$ re-routes the flow;
+$N_0$ on the left aggregates expected visits. The product is the expected
+\emph{loss} of success probability per unit $\varepsilon$.
+\end{remark}
+
+\begin{remark}[When is the bound tight?]
+Equation~\eqref{eq:t2} is tight up to the $O(\varepsilon^{2})$ remainder;
+empirical tightness depends on $\|N_0\|_\infty$, which is dominated by the
+slowest-decaying eigenvalue of $Q_0$ (chains close to recurrence yield loose
+bounds). SS2 in \texttt{code/sim/} evaluates tightness numerically.
+\end{remark}
+\fi

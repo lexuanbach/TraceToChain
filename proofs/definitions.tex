@@ -1,0 +1,146 @@
+%% definitions.tex -- Phase 1 formalism lock-down.
+%% D1-D4 and A1-A4 committed on 2026-04-20. Changes require a change note.
+
+\section{Formalism}
+\label{sec:formal}
+
+\subsection{The Agent Markov Chain}
+
+\begin{definition}[Agent Markov chain]
+\label{def:amc}
+An \emph{agent Markov chain} is a tuple $\mathcal{M}=(\mathcal{S},P,s_0)$ where
+$\mathcal{S}=\mathcal{S}_T\cup\{\oplus,\ominus\}$ partitions into transient
+states $\mathcal{S}_T$ with $|\mathcal{S}_T|=m$ and two absorbing states:
+success $\oplus$ and failure $\ominus$. The transition matrix has block form
+\begin{equation}
+P =
+\begin{pmatrix} Q & R \\ \mathbf{0}_{2\times m} & I_2 \end{pmatrix},
+\qquad Q\in\mathbb{R}_{\ge 0}^{m\times m},\ R\in\mathbb{R}_{\ge 0}^{m\times 2},
+\label{eq:block}
+\end{equation}
+with row sums of $[Q\;R]$ equal to one. We write $R=[R_\oplus\;R_\ominus]$.
+The initial state is $s_0\in\mathcal{S}_T$, or a distribution $\pi_0$ over
+$\mathcal{S}_T$. Figure~\ref{fig:markov_chain} visualizes an example of this absorbing chain structure.
+\end{definition}
+
+\begin{definition}[Trajectory reliability]
+\label{def:reliab}
+For $d\in\mathbb{N}_{\ge 0}$, the \emph{trajectory reliability at horizon $d$}
+is the probability of absorption in $\oplus$ within $d$ steps:
+\begin{equation}
+R(d) \;=\; e_{s_0}^{\top}\Bigl(\textstyle\sum_{t=0}^{d-1}Q^{t}\Bigr)R_{\oplus}.
+\label{eq:rd}
+\end{equation}
+We adopt the convention $R(0)=0$ (no steps taken).
+\end{definition}
+
+\begin{definition}[Asymptotic reliability]
+\label{def:reliabinf}
+The \emph{asymptotic reliability} is $R_\infty=\lim_{d\to\infty}R(d)$,
+provided the limit exists.
+\end{definition}
+
+\begin{definition}[Tool-error perturbation family]
+\label{def:perturb}
+Let $Q_0$ be a fixed substochastic matrix with $\rho(Q_0)<1$ and let
+$\Delta\in\mathbb{R}^{m\times m}$ be a perturbation direction satisfying
+the following \emph{sign convention}:
+\begin{equation}
+\Delta\mathbf{1}\;\le\;\mathbf{0}\qquad\text{(row-wise),}
+\label{eq:perturb-sign}
+\end{equation}
+so that $\Delta$ can only \emph{remove} probability mass from the
+transient rows of $Q_0$. For $\varepsilon\in[0,\varepsilon_{\max}]$ we
+then define the perturbed chain by
+\begin{equation}
+\begin{aligned}
+Q(\varepsilon) &= Q_0+\varepsilon\Delta, \\
+R_{\oplus}(\varepsilon) &= R_{\oplus,0}, \\
+R_{\ominus}(\varepsilon) &= R_{\ominus,0}-\varepsilon\,\Delta\mathbf{1},
+\end{aligned}
+\label{eq:perturb}
+\end{equation}
+where $\varepsilon_{\max}$ is the largest $\varepsilon$ for which
+$Q(\varepsilon)$ remains elementwise non-negative and substochastic
+(\textit{cf.}\ A\ref{A:trans}).
+\end{definition}
+
+\begin{remark}[Mass conservation; bookkeeping]
+\label{rem:perturb-mass}
+The sign convention \eqref{eq:perturb-sign} together with the
+absorber updates in \eqref{eq:perturb} guarantees row-wise conservation
+of probability mass for every $\varepsilon\in[0,\varepsilon_{\max}]$:
+\begin{equation}
+\begin{aligned}
+Q(\varepsilon)\mathbf{1}
+  + R_\oplus(\varepsilon)
+  + R_\ominus(\varepsilon)
+&= \underbrace{Q_0\mathbf{1} + \varepsilon\,\Delta\mathbf{1}}_{=\,Q(\varepsilon)\mathbf{1}}
+   + R_{\oplus,0}
+   + \underbrace{(R_{\ominus,0}-\varepsilon\,\Delta\mathbf{1})}_{=\,R_\ominus(\varepsilon)} \\
+&= \bigl(Q_0\mathbf{1}+R_{\oplus,0}+R_{\ominus,0}\bigr)
+   \;=\; \mathbf{1},
+\end{aligned}
+\label{eq:perturb-conservation}
+\end{equation}
+since $Q_0\mathbf{1}+R_{\oplus,0}+R_{\ominus,0}=\mathbf{1}$ is the row-stochasticity
+of the unperturbed kernel (Def.~\ref{def:amc}). The explicit sign
+reading is as follows: because $\Delta\mathbf{1}\le\mathbf{0}$, the term
+$-\varepsilon\,\Delta\mathbf{1}\ge\mathbf{0}$, so the failure absorber
+$R_\ominus(\varepsilon)$ is \emph{increased} by exactly the mass that
+$Q(\varepsilon)$ removes from the transient rows, while the success
+absorber $R_\oplus(\varepsilon)$ is left untouched. That is,
+\[
+\underbrace{\text{mass lost by transients}}_{=\,-\varepsilon\,\Delta\mathbf{1}\,\ge\,\mathbf{0}}
+  \;=\;
+\underbrace{\text{mass gained by }\ominus}_{=\,R_\ominus(\varepsilon)-R_{\ominus,0}\,\ge\,\mathbf{0}},
+\]
+which is the defining ``tool-error drift'' regime: drift degrades the
+chain by re-routing attempts to the failure absorber only.
+\end{remark}
+
+\subsection{Standing Assumptions}
+
+\begin{assumption}[Transience]\label{A:trans}
+$\rho(Q)<1$, equivalently the chain restricted to $\mathcal{S}_T$ is
+transient and absorption occurs with probability one.
+\end{assumption}
+
+\begin{assumption}[Invertibility]\label{A:inv}
+$(I-Q)$ is invertible; this is implied by A\ref{A:trans}.
+\end{assumption}
+
+\begin{assumption}[Deterministic initial state]\label{A:init}
+Unless otherwise stated, $s_0$ is deterministic.
+Extensions to a distribution $\pi_0$ replace $e_{s_0}^\top$ with $\pi_0^\top$
+in all statements.
+\end{assumption}
+
+\begin{assumption}[I.i.d.\ replications]\label{A:iid}
+When $k$-replication metrics (pass$^k$, pass@$k$) are considered, trials are
+assumed independent and identically distributed. This assumption is
+relaxed in Theorem~3$'$.
+\end{assumption}
+
+\subsection{Type-Check Example}
+
+To verify that Definitions \ref{def:amc}--\ref{def:reliab} are internally
+consistent we use a running $3\times 3$ example with $m=3$ transient states
+$\{s_0,s_1,s_2\}$:
+\[
+Q=\begin{pmatrix}
+0.5 & 0.3 & 0.0\\
+0.0 & 0.4 & 0.3\\
+0.0 & 0.0 & 0.6
+\end{pmatrix},\quad
+R=\begin{pmatrix}
+0.1 & 0.1\\
+0.2 & 0.1\\
+0.3 & 0.1
+\end{pmatrix}.
+\]
+Row sums of $[Q\;R]$ equal $1$; $\rho(Q)=0.6<1$; $N=(I-Q)^{-1}$ exists.
+Computation yields $R_\infty=0.625$ starting from $s_0$
+(closed form from Theorem~\ref{thm:closed}; Monte Carlo with
+$n=2\!\times\!10^{5}$ gives $\widehat{R}=0.6241$ with $95\%$~CI
+$[0.6220,0.6263]$, consistent within sampling noise).

@@ -1,0 +1,8 @@
+{
+  "N": 250,
+  "m": 4,
+  "n_boot": 80,
+  "median_halfwidth_fast": 0.0339,
+  "median_halfwidth_full": 0.1575,
+  "ratio_full_over_fast": 4.65
+}

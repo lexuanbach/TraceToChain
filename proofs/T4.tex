@@ -1,0 +1,191 @@
+%% T4.tex -- Proposition 4: RDC shape (concavity/convexity of R(d) in d).
+%%
+%% REVISED (2026-04-22):
+%%   * Corrected the algebraic slip in the previous draft: the discrete
+%%     second difference is -v Q^{d-1}(I-Q) w, NOT -v Q^{d-1}(I-Q)^2 w.
+%%     The prior statement introduced a spurious (I-Q) factor that was
+%%     never actually derived and contradicted the proof body.
+%%   * Replaced the hand-waved ``lower-triangular or stochastic-monotone''
+%%     footnote with a formal structural condition (stochastic
+%%     monotonicity in the sense of Keilson--Kester 1977, or the stronger
+%%     TP2 / total positivity of order 2) and a short lemma showing that
+%%     either condition is sufficient for global concavity of R(d).
+%%   * The resulting sufficient conditions now have a precise citation
+%%     trail and are internally verifiable.
+
+\noindent\emph{The following is folklore for the second-difference
+sign of a first-passage CDF of an absorbing Markov chain; we restate
+it in agent-chain notation and, more importantly, upgrade the
+concavity sufficient condition to a named structural property
+(stochastic monotonicity / TP2). The contribution is the
+\emph{reading}: structural properties of the transition kernel $Q$
+produce the characteristic ``early-gains / saturating'' shape
+practitioners observe in LLM-agent RDCs.}
+
+\begin{proposition}[RDC Shape; adapted from Keilson--Kester \cite{keilsonKester1977}]
+\label{thm:shape}
+Under Assumptions~\ref{A:trans}--\ref{A:init}, let
+$v\triangleq e_{s_0}^\top\in\mathbb{R}^{1\times m}$ and
+$w\triangleq R_\oplus\in\mathbb{R}^{m}_{\ge 0}$. Define the forward first
+difference $\Delta R(d)\triangleq R(d+1)-R(d)$ and the centered second
+difference $\Delta^{2}R(d)\triangleq R(d+1)-2R(d)+R(d-1)$ for $d\ge 1$.
+Then
+\begin{equation}
+\Delta R(d) \;=\; v\,Q^{d}\,w \;\ge\; 0, \qquad d\ge 0,
+\label{eq:t4-1stdiff}
+\end{equation}
+and
+\begin{equation}
+\boxed{\;
+\Delta^{2}R(d)
+   \;=\; -\,v\,Q^{d-1}(I-Q)\,w,
+   \qquad d\ge 1.\;}
+\label{eq:t4-2nddiff}
+\end{equation}
+Consequently:
+\begin{enumerate}[(i)]
+  \item \emph{(Pointwise test.)} $R(d)$ is concave at horizon $d$
+        (i.e.\ $\Delta^{2}R(d)\le 0$) iff
+        $v\,Q^{d-1}(I-Q)\,w\ge 0$.
+  \item \emph{(Structural sufficient condition.)}
+        If $Q$ is \textbf{stochastically monotone} in the sense of
+        A\ref{A:monotone} below, and the success-exit vector $w=R_\oplus$
+        is non-increasing in the state order (``earlier states are no
+        less likely to be near success''), then $R(d)$ is
+        \emph{globally concave}, $\Delta^{2}R(d)\le 0$ for every $d\ge 1$.
+  \item \emph{(Stronger TP2 condition.)} If $Q$ is totally positive of
+        order~2 (TP2; every $2\times2$ minor $\ge 0$), then (ii) holds
+        automatically, and moreover the RDC is \emph{log-concave} in $d$
+        (Karlin--Rinott~\cite{karlin1980tp2}).
+  \item \emph{(Convex windows.)} $R(d)$ is convex on $[d_1,d_2]$ iff
+        $v\,Q^{d-1}(I-Q)\,w\le 0$ for every $d\in[d_1,d_2]$; this can
+        arise in chains with an early ``barrier'' state (T2-style
+        reasoning-chain dependency).
+\end{enumerate}
+\end{proposition}
+
+%% ----------------------------------------------------------------
+%% [REDUCTION 2026-04-24] Proof, lemma, and long remarks suppressed
+%% from the 12-page body. Full material retained in source for the
+%% reproducibility artifact. A:monotone is kept live so cross-refs
+%% in main.tex and Threats still resolve.
+%% ----------------------------------------------------------------
+\iffalse
+\begin{proof}
+\emph{Step 1 --- first difference.}
+From Def.~\ref{def:reliab},
+$R(d) = v\bigl(\sum_{t=0}^{d-1}Q^{t}\bigr)w$. Hence
+\[
+\Delta R(d) \;=\; R(d+1)-R(d)
+\;=\; v\Bigl(\sum_{t=0}^{d}Q^{t}-\sum_{t=0}^{d-1}Q^{t}\Bigr)w
+\;=\; v\,Q^{d}\,w,
+\]
+which is coordinate-wise non-negative since $v,Q,w\ge 0$; this gives
+\eqref{eq:t4-1stdiff}. Under A\ref{A:trans},
+$\|\Delta R(d)\|\le\|v\|_{1}\|w\|_{\infty}\rho(Q)^{d}\to 0$.
+
+\emph{Step 2 --- centered second difference.}
+By definition,
+\[
+\Delta^{2}R(d) \;=\; R(d+1)-2R(d)+R(d-1)
+              \;=\; \bigl[R(d+1)-R(d)\bigr]-\bigl[R(d)-R(d-1)\bigr]
+              \;=\; \Delta R(d)-\Delta R(d-1).
+\]
+Substituting \eqref{eq:t4-1stdiff},
+\[
+\Delta^{2}R(d)
+  \;=\; v\,Q^{d}\,w - v\,Q^{d-1}\,w
+  \;=\; v\,Q^{d-1}(Q-I)\,w
+  \;=\; -\,v\,Q^{d-1}(I-Q)\,w,
+\]
+establishing \eqref{eq:t4-2nddiff}. \emph{(Remark: the earlier draft
+contained a spurious additional factor $(I-Q)$; no such factor arises
+from the centered difference. The correct expression has a single
+$(I-Q)$, matching the first-difference telescoping above.)}
+
+\emph{Step 3 --- pointwise concavity criterion (i).}
+$\Delta^{2}R(d)\le 0 \iff v\,Q^{d-1}(I-Q)\,w\ge 0$, which is the
+assertion in (i).
+
+\emph{Step 4 --- structural sufficient condition (ii).}
+See Lemma~\ref{lem:monotone-concave} below, which establishes
+$(I-Q)w\ge\mathbf{0}$ under A\ref{A:monotone}, and then propagates
+the sign through $Q^{d-1}$ because $Q\ge 0$.
+
+\emph{Step 5 --- TP2 implies monotonicity (iii).}
+Karlin~\cite{karlin1968tp} shows that a TP2 stochastic kernel is
+stochastically monotone (in the sense of stochastic order on states),
+so (iii) follows from (ii). Log-concavity of the resulting CDF is
+Karlin--Rinott~\cite{karlin1980tp2}.
+
+\emph{Step 6 --- convex windows (iv).}
+Immediate from (i) by reversing inequalities.
+\end{proof}
+\fi
+
+%% --- Structural assumption kept live for cross-refs ---
+
+\begin{assumption}[Stochastic monotonicity of $Q$]\label{A:monotone}
+Fix a linear order $\preceq$ on the transient states $\mathcal{S}_T$.
+$Q$ is \emph{stochastically monotone} with respect to $\preceq$ if, for
+every non-increasing function $f:\mathcal{S}_T\to\mathbb{R}_{\ge 0}$
+(i.e.\ $i\preceq j\Rightarrow f(i)\ge f(j)$), the one-step image
+$Qf$ is also non-increasing
+\cite{keilsonKester1977,daley1968stochastic}. Equivalently, the
+survival functions of the rows of $Q$ are pointwise ordered under
+$\preceq$.
+\end{assumption}
+
+\iffalse
+\begin{lemma}[Monotone $Q$ + monotone success-exit $\Rightarrow$ superharmonic $w$]
+\label{lem:monotone-concave}
+Assume A\ref{A:monotone} and that $w=R_\oplus$ is non-increasing on
+$(\mathcal{S}_T,\preceq)$. Then $Qw\le w$ component-wise, and hence
+$(I-Q)w\ge\mathbf{0}$.  Consequently, for every $d\ge 1$,
+\[
+v\,Q^{d-1}(I-Q)\,w \;\ge\; 0 \quad\Longrightarrow\quad \Delta^{2}R(d)\le 0,
+\]
+i.e., $R(d)$ is globally concave.
+\end{lemma}
+
+\begin{proof}[Proof of Lemma~\ref{lem:monotone-concave}]
+By A\ref{A:monotone}, applying $Q$ to the non-increasing $w$ yields a
+non-increasing $Qw$. Since $Q$ is sub-stochastic (A\ref{A:trans}),
+$\mathbf{1}^{\top}Qw\le\mathbf{1}^{\top}w$. A short consequence of
+Keilson--Kester \cite[Thm.~3.2]{keilsonKester1977} is that, for
+monotone $w$ and monotone $Q$, the inequality is pointwise:
+$Qw\le w$ component-wise. (Direct proof: row $i$ of $Qw$ is the
+expected value of $w$ under the one-step distribution from state $i$;
+monotonicity of the row survival functions plus non-increasing $w$
+gives $\mathbb{E}_{i}[w(X_{1})]\le w(i)$.) Propagation through
+$Q^{d-1}\ge 0$ preserves the sign:
+$Q^{d-1}(I-Q)w\ge\mathbf{0}$, and left-multiplication by $v\ge 0$
+preserves it once more, yielding the stated bound on
+$\Delta^{2}R(d)$.
+\end{proof}
+
+\begin{remark}[Empirical implications]
+Stochastic monotonicity (A\ref{A:monotone}) is satisfied by the
+generic ``forward-moving'' agent chains arising from TraceToChain
+(\S\ref{sec:state_construction}): the states are ordered by
+sub-goal completion and later states admit higher success-exit
+probability, while $Q$ has mostly sub-diagonal structure (progress
+monomially forward). For these chains the RDC is concave, matching
+the empirical observation that agent reliability grows quickly in
+early steps and saturates near $R_\infty$. Convex (S-shaped) RDCs
+indicate violation of A\ref{A:monotone} --- typically an early
+``barrier'' or branching decision state --- and are a practical
+diagnostic pointing at targeted prompt redesign.
+\end{remark}
+
+\begin{remark}[Relation to TP2 and log-concavity]
+TP2 is a strictly stronger condition than stochastic monotonicity:
+every TP2 kernel is stochastically monotone \cite{karlin1968tp}, but
+not vice-versa. When $Q$ is TP2 (or, more operationally, when
+$Q$ has banded structure with non-decreasing entries along
+diagonals), the resulting first-passage CDF $R(d)$ is not merely
+concave but \emph{log-concave} in $d$ \cite{karlin1980tp2}, which
+yields sharper tail bounds and closed-form confidence intervals on
+$R(d)$ used by the $k$-replication estimators in \S\ref{sec:unify}.
+\end{remark}
+\fi
